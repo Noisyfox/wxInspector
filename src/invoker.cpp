@@ -174,6 +174,9 @@ void MethodInvokerPanel::OnInvoke(wxCommandEvent&)
             wxString key = wxString::Format("entry%zu", i);
             cfg->Write(key, m_history[i]);
         }
+        for (size_t i = m_history.size(); i < MAX_HISTORY; i++) {
+            cfg->DeleteEntry(wxString::Format("entry%zu", i));
+        }
         cfg->SetPath("/");
     }
 }
