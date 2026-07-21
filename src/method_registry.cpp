@@ -11,30 +11,6 @@
 
 namespace wxInspector {
 
-// Helper to parse arguments from comma-separated string
-static wxVector<wxString> ParseArgs(const wxString& argStr) {
-    wxVector<wxString> result;
-    if (argStr.empty()) return result;
-    // Simple split on comma — handles basic cases
-    wxString current;
-    bool inParens = false;
-    for (size_t i = 0; i < argStr.length(); i++) {
-        wxChar c = argStr[i];
-        if (c == '(') inParens = true;
-        else if (c == ')') inParens = false;
-        if (c == ',' && !inParens) {
-            current.Trim(true).Trim(false);
-            result.push_back(current);
-            current.clear();
-        } else {
-            current += c;
-        }
-    }
-    current.Trim(true).Trim(false);
-    if (!current.empty()) result.push_back(current);
-    return result;
-}
-
 // --- Builtin Window Methods ---
 
 class BuiltinWindowMethods : public wxInspectorPlugin {

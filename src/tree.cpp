@@ -287,13 +287,11 @@ wxTreeItemId InspectionTree::FindItemForObject(wxTreeItemId parent, wxObject* ta
 
 void InspectionTree::FindWidget()
 {
-#if wxUSE_POPUPWIN
     if (m_findWidgetCapture) return;
 
     m_findWidgetCapture = true;
     CaptureMouse();
     SetCursor(wxCURSOR_CROSS);
-#endif
 }
 
 // --- Event handlers ---

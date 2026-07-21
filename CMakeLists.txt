@@ -5,8 +5,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Find wxWidgets
-set(wxWidgets_CONFIG_OPTIONS --toolkit=osx_cocoa)
-find_package(wxWidgets 3.2.0 REQUIRED COMPONENTS core base aui stc propgrid)
+find_package(wxWidgets 3.2.0 REQUIRED COMPONENTS core base aui propgrid)
 
 include(${wxWidgets_USE_FILE})
 

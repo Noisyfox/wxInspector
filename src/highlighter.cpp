@@ -58,7 +58,6 @@ void InspectionHighlighter::Highlight(InspectableObject& obj)
 void InspectionHighlighter::ClearHighlight()
 {
     m_timer.Stop();
-    m_overlay.Reset();
     m_highlightedWindow = nullptr;
     m_flickerCount = 0;
 }

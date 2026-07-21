@@ -1,16 +1,6 @@
 #include "wx/inspector/object.h"
 #include <wx/toplevel.h>
 #include <wx/sizer.h>
-#include <wx/button.h>
-#include <wx/textctrl.h>
-#include <wx/stattext.h>
-#include <wx/checkbox.h>
-#include <wx/choice.h>
-#include <wx/combobox.h>
-#include <wx/slider.h>
-#include <wx/spinctrl.h>
-#include <wx/gauge.h>
-#include <wx/radiobut.h>
 
 namespace wxInspector {
 
