@@ -212,7 +212,13 @@ void InspectionFrame::OnTreeSelectionChanged(wxCommandEvent& event)
     {
         m_info->ShowObject(inspObj);
         m_invoker->ShowObject(inspObj);
-        m_highlighter->Highlight(inspObj);
+        // Skip auto-highlight for top-level windows — the flicker
+        // effect is disruptive. F6 still works for manual highlight.
+        if (inspObj.GetKind() != InspectableObject::Kind::Window ||
+            !wxDynamicCast(inspObj.AsWindow(), wxTopLevelWindow))
+        {
+            m_highlighter->Highlight(inspObj);
+        }
     }
     m_events->ShowObject(inspObj);
 }
