@@ -12,7 +12,7 @@ namespace wxInspector {
 // --- Public API ---
 
 bool Init(wxConfigBase* config = nullptr);
-void Show(wxObject* selectObj = nullptr, bool refreshTree = false);
+void Show(wxObject* selectObj = nullptr);
 void Hide();
 void RefreshTree();
 void SelectObject(wxObject* obj);

@@ -47,10 +47,10 @@ bool Init(wxConfigBase* config)
     return true;
 }
 
-void Show(wxObject* selectObj, bool refreshTree)
+void Show(wxObject* selectObj)
 {
     if (!g_inspectorFrame) return;
-    g_inspectorFrame->Show(selectObj, refreshTree);
+    g_inspectorFrame->Show(selectObj);
 }
 
 void Hide()

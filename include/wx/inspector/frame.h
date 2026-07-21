@@ -21,7 +21,7 @@ public:
                     wxSize size = wxDefaultSize);
     ~InspectionFrame();
 
-    void Show(wxObject* selectObj = nullptr, bool refreshTree = false);
+    void Show(wxObject* selectObj = nullptr);
     void SelectObject(wxObject* obj);
     void RefreshTree();
 

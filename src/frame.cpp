@@ -166,7 +166,7 @@ void InspectionFrame::SetupAUI()
     m_auiMgr.Update();
 }
 
-void InspectionFrame::Show(wxObject* selectObj, bool refreshTree)
+void InspectionFrame::Show(wxObject* selectObj)
 {
     // Always rebuild — the tree was initially built during Init() before
     // the application's main window existed, so it only contains the
