@@ -279,7 +279,10 @@ void InspectionFrame::OnClose(wxCloseEvent& event)
     evt.SetEventObject(this);
     ProcessWindowEvent(evt);
 
-    event.Skip();
+    // Hide instead of destroying — the inspector is a persistent singleton
+    // that can be reshown via Show(). Destroying would leave g_inspectorFrame
+    // dangling in inspector.cpp.
+    wxWindow::Show(false);
 }
 
 } // namespace wxInspector
