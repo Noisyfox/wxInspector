@@ -3,6 +3,7 @@
 
 #include <wx/object.h>
 #include <wx/timer.h>
+#include <wx/overlay.h>
 #include "wx/inspector/object.h"
 
 namespace wxInspector {
@@ -20,8 +21,9 @@ private:
     void DrawSizerHighlight(wxSizer* sizer, wxWindow* relativeTo);
     void DrawSizerItemHighlight(wxSizerItem* item, wxWindow* relativeTo);
 
+    wxOverlay m_overlay;
     wxTimer m_timer;
-    wxWindow* m_highlightedWindow; // for window flicker
+    wxWindow* m_highlightedWindow; // for TLW flicker
     int m_flickerCount;            // flicker toggle counter
 
     wxDECLARE_EVENT_TABLE();

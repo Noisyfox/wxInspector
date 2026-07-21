@@ -1,10 +1,7 @@
 #include "wx/inspector/highlighter.h"
 #include <wx/window.h>
 #include <wx/sizer.h>
-#include <wx/dcscreen.h>
 #include <wx/toplevel.h>
-#include <wx/gbsizer.h>
-#include <wx/wrapsizer.h>
 
 namespace wxInspector {
 
@@ -43,12 +40,26 @@ void InspectionHighlighter::Highlight(InspectableObject& obj)
         break;
     case InspectableObject::Kind::SizerItem:
         if (obj.AsSizerItem()) {
-            DrawSizerItemHighlight(obj.AsSizerItem(), nullptr);
+            wxSizerItem* item = obj.AsSizerItem();
+            // Try to find a reference window for coordinate conversion
+            wxWindow* refWin = nullptr;
+            if (item->IsWindow()) {
+                // Highlight the window directly
+                DrawWindowHighlight(item->GetWindow());
+                return;
+            } else if (item->IsSizer()) {
+                wxSizer* childSizer = item->GetSizer();
+                refWin = childSizer->GetContainingWindow();
+            }
+            // For spacers: we need the containing window of the parent sizer.
+            // Since wxSizerItem doesn't know its parent, use the sizer's
+            // containing window from the item's own sizer if we can reach it.
+            DrawSizerItemHighlight(item, refWin);
         }
         break;
     }
 
-    // DrawWindowHighlight manages its own timer for windows.
+    // DrawWindowHighlight manages its own timer for TLW flicker.
     // For sizer / sizer-item highlights we start a one-shot clear timer.
     if (obj.GetKind() != InspectableObject::Kind::Window) {
         m_timer.Start(HIGHLIGHT_DURATION_MS, true);
@@ -58,6 +69,7 @@ void InspectionHighlighter::Highlight(InspectableObject& obj)
 void InspectionHighlighter::ClearHighlight()
 {
     m_timer.Stop();
+    m_overlay.Reset();
     m_highlightedWindow = nullptr;
     m_flickerCount = 0;
 }
@@ -71,103 +83,68 @@ void InspectionHighlighter::DrawWindowHighlight(wxWindow* win)
         m_flickerCount = 0;
         m_timer.Start(FLICKER_INTERVAL_MS);
     } else {
-        // Green outline for non-TLW windows, drawn directly on screen DC
-        wxScreenDC dc;
+        // Use wxOverlayDC for persistent highlighting on non-TLW windows.
+        // Unlike bare wxScreenDC (whose drawing is immediately overwritten
+        // by the window system), wxOverlayDC draws through a transparent
+        // overlay window that stays on top until m_overlay.Reset().
+        wxOverlayDC dc(m_overlay, win);
         dc.SetPen(wxPen(*wxGREEN, 3));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        wxRect rect = win->GetScreenRect();
-        dc.DrawRectangle(rect);
+        wxSize sz = win->GetSize();
+        dc.DrawRectangle(0, 0, sz.x - 1, sz.y - 1);
 
-        // Schedule clearing via one-shot timer
+        // wxOverlayDC destructor commits the overlay; start clear timer
         m_timer.Start(HIGHLIGHT_DURATION_MS, true);
     }
 }
 
 void InspectionHighlighter::DrawSizerHighlight(wxSizer* sizer, wxWindow* relativeTo)
 {
-    wxScreenDC dc;
+    // Use wxOverlayDC on the containing window — sizer positions are
+    // already relative to the containing window's client area, so no
+    // coordinate conversion is needed.
+    wxOverlayDC dc(m_overlay, relativeTo);
 
     // Green outline for sizer boundary
     dc.SetPen(wxPen(*wxGREEN, 2));
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
     wxSize sz = sizer->GetSize();
     wxPoint pos = sizer->GetPosition();
-    wxPoint screenPos = relativeTo->ClientToScreen(pos);
-    wxRect sizerRect(screenPos, sz);
-    dc.DrawRectangle(sizerRect);
+    dc.DrawRectangle(pos.x, pos.y, sz.x, sz.y);
 
-    // Draw each item with dark blue fill per sizer type
-    if (wxBoxSizer* bs = wxDynamicCast(sizer, wxBoxSizer)) {
-        wxSizerItemList& items = bs->GetChildren();
-        for (size_t i = 0; i < items.GetCount(); i++) {
-            wxSizerItem* item = items[i];
-            if (!item) continue;
-            wxSize itemSz = item->GetSize();
-            wxPoint itemPos = item->GetPosition();
-            wxPoint screenItemPos = relativeTo->ClientToScreen(itemPos);
+    // Dark blue fill for each child item
+    dc.SetPen(wxNullPen);
+    dc.SetBrush(wxBrush(wxColour(0, 0, 139, 64)));
 
-            dc.SetBrush(wxBrush(wxColour(0, 0, 139, 64))); // dark blue with alpha
-            dc.DrawRectangle(wxRect(screenItemPos, itemSz));
-            dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        }
-    } else if (wxGridSizer* gs = wxDynamicCast(sizer, wxGridSizer)) {
-        wxSizerItemList& items = gs->GetChildren();
-        for (size_t i = 0; i < items.GetCount(); i++) {
-            wxSizerItem* item = items[i];
-            if (!item) continue;
-            wxPoint itemPos = item->GetPosition();
-            wxSize itemSz = item->GetSize();
-            wxPoint screenItemPos = relativeTo->ClientToScreen(itemPos);
-
-            dc.SetBrush(wxBrush(wxColour(0, 0, 139, 64)));
-            dc.DrawRectangle(wxRect(screenItemPos, itemSz));
-            dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        }
-    } else if (wxFlexGridSizer* fgs = wxDynamicCast(sizer, wxFlexGridSizer)) {
-        wxSizerItemList& items = fgs->GetChildren();
-        for (size_t i = 0; i < items.GetCount(); i++) {
-            wxSizerItem* item = items[i];
-            if (!item) continue;
-            wxPoint itemPos = item->GetPosition();
-            wxSize itemSz = item->GetSize();
-            wxPoint screenItemPos = relativeTo->ClientToScreen(itemPos);
-
-            dc.SetBrush(wxBrush(wxColour(0, 0, 139, 64)));
-            dc.DrawRectangle(wxRect(screenItemPos, itemSz));
-            dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        }
-    } else if (wxWrapSizer* ws = wxDynamicCast(sizer, wxWrapSizer)) {
-        wxSizerItemList& items = ws->GetChildren();
-        for (size_t i = 0; i < items.GetCount(); i++) {
-            wxSizerItem* item = items[i];
-            if (!item) continue;
-            wxPoint itemPos = item->GetPosition();
-            wxSize itemSz = item->GetSize();
-            wxPoint screenItemPos = relativeTo->ClientToScreen(itemPos);
-
-            dc.SetBrush(wxBrush(wxColour(0, 0, 139, 64)));
-            dc.DrawRectangle(wxRect(screenItemPos, itemSz));
-            dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        }
+    wxSizerItemList& items = sizer->GetChildren();
+    for (size_t i = 0; i < items.GetCount(); i++) {
+        wxSizerItem* item = items[i];
+        if (!item) continue;
+        wxPoint itemPos = item->GetPosition();
+        wxSize itemSz = item->GetSize();
+        dc.DrawRectangle(itemPos.x, itemPos.y, itemSz.x, itemSz.y);
     }
+    // wxOverlayDC destructor commits the overlay
 }
 
 void InspectionHighlighter::DrawSizerItemHighlight(wxSizerItem* item, wxWindow* relativeTo)
 {
     if (item->IsWindow()) {
-        // Highlight the child window directly
+        // Delegate to window highlighting
         DrawWindowHighlight(item->GetWindow());
     } else if (item->IsSpacer()) {
-        // Draw the spacer rectangle on screen DC
+        // Draw the spacer rectangle using overlay for persistence
+        if (!relativeTo) return;
+
         wxRect rect = item->GetRect();
-        wxScreenDC dc;
+        wxOverlayDC dc(m_overlay, relativeTo);
         dc.SetPen(wxPen(*wxGREEN, 2));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        if (relativeTo) {
-            rect.SetPosition(relativeTo->ClientToScreen(rect.GetPosition()));
-        }
         dc.DrawRectangle(rect);
+        // wxOverlayDC destructor commits the overlay
     }
+    // Sizer-type items: the child sizer's children are drawn as part
+    // of the parent sizer highlight (drawn in DrawSizerHighlight)
 }
 
 void InspectionHighlighter::OnTimer(wxTimerEvent&)
