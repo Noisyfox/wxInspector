@@ -37,10 +37,11 @@ bool Init(wxConfigBase* config)
     g_inspectorFrame = new InspectionFrame(
         nullptr, pos, wxSize(w, h));
 
-    // Handle frame being closed
+    // Handle frame being closed (the frame already hides itself via
+    // OnClose; this handler is a secondary listener for API users)
     g_inspectorFrame->Bind(wxEVT_INSPECTION_FRAME_CLOSED,
         [](wxCommandEvent&) {
-            g_inspectorFrame->wxWindow::Show(false);
+            g_inspectorFrame->Hide();
         });
 
     return true;
@@ -55,7 +56,7 @@ void Show(wxObject* selectObj, bool refreshTree)
 void Hide()
 {
     if (g_inspectorFrame) {
-        g_inspectorFrame->wxWindow::Show(false);
+        g_inspectorFrame->Hide();
     }
 }
 
