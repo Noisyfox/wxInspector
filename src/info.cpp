@@ -78,12 +78,8 @@ void ObjectInfoPanel::PopulateGrid(InspectableObject& obj)
             pgProp->SetValueFromString(prop.value);
             break;
         case PropertyType::Colour:
-            // Use wxStringProperty rather than wxColourProperty — the
-            // latter restricts input to wxTheColourDatabase names, while
-            // the setter already handles hex (#RRGGBB), rgb(), and named
-            // colours via wxColour(string). This lets users type arbitrary
-            // colour values freely.
-            pgProp = new wxStringProperty(prop.name, wxPG_LABEL, prop.value);
+            pgProp = new wxColourProperty(prop.name, wxPG_LABEL,
+                wxColour(prop.value));
             break;
         case PropertyType::String:
         case PropertyType::Font:
@@ -129,13 +125,23 @@ void ObjectInfoPanel::OnPropertyChanged(wxPropertyGridEvent& event)
     if (!pgProp) return;
 
     wxString propName = pgProp->GetName();
-    wxString newValue = pgProp->GetValueAsString();
+    wxString newValue;
 
+    // wxColourProperty stores its value as a wxColour variant, not a
+    // string. Extract the colour from the variant and convert to hex.
+    if (pgProp->IsKindOf(CLASSINFO(wxColourProperty))) {
+        wxColour color;
+        wxVariant variant = pgProp->GetValue();
+        color << variant;
+        newValue = color.GetAsString(wxC2S_HTML_SYNTAX);
+    }
     // wxBoolProperty::GetValueAsString() returns "True"/"False" (capitalized),
     // but the setters in property_provider.cpp compare against lowercase
     // "true"/"false". Normalize to lowercase.
-    if (pgProp->IsKindOf(CLASSINFO(wxBoolProperty))) {
-        newValue = newValue.Lower();
+    else if (pgProp->IsKindOf(CLASSINFO(wxBoolProperty))) {
+        newValue = pgProp->GetValueAsString().Lower();
+    } else {
+        newValue = pgProp->GetValueAsString();
     }
 
     // Determine category for unambiguous matching when properties share names
