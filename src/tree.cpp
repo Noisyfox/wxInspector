@@ -31,7 +31,7 @@ wxBEGIN_EVENT_TABLE(InspectionTree, wxPanel)
 wxEND_EVENT_TABLE()
 
 InspectionTree::InspectionTree(wxWindow* parent)
-    : wxPanel(parent, wxID_ANY), m_showSizers(false)
+    : wxPanel(parent, wxID_ANY), m_showSizers(false), m_findWidgetCapture(false)
 {
     wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
 
@@ -64,6 +64,20 @@ InspectionTree::InspectionTree(wxWindow* parent)
     Bind(wxEVT_TOOL, &InspectionTree::OnCollapseAll, this, ID_TREE_COLLAPSE_ALL);
     Bind(wxEVT_TOOL, &InspectionTree::OnFindWidget, this, ID_TREE_FIND_WIDGET);
     m_tree->Bind(wxEVT_KEY_DOWN, &InspectionTree::OnKeyDown, this);
+
+    Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& evt) {
+        if (!m_findWidgetCapture) {
+            evt.Skip();
+            return;
+        }
+        ReleaseMouse();
+        SetCursor(wxNullCursor);
+        m_findWidgetCapture = false;
+        wxPoint pt = ::wxGetMousePosition();
+        wxWindow* win = wxFindWindowAtPointer(pt);
+        if (win) SelectObject(win);
+        else wxBell();
+    }, wxID_ANY, wxID_ANY, this);
 
     RebuildTree();
 }
@@ -274,21 +288,11 @@ wxTreeItemId InspectionTree::FindItemForObject(wxTreeItemId parent, wxObject* ta
 void InspectionTree::FindWidget()
 {
 #if wxUSE_POPUPWIN
+    if (m_findWidgetCapture) return;
+
+    m_findWidgetCapture = true;
     CaptureMouse();
     SetCursor(wxCURSOR_CROSS);
-
-    Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& evt) {
-        if (!HasCapture()) {
-            evt.Skip();
-            return;
-        }
-        ReleaseMouse();
-        SetCursor(wxNullCursor);
-        wxPoint pt = ::wxGetMousePosition();
-        wxWindow* win = wxFindWindowAtPointer(pt);
-        if (win) SelectObject(win);
-        else wxBell();
-    }, wxID_ANY, wxID_ANY, this);
 #endif
 }
 

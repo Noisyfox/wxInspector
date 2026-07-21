@@ -35,7 +35,6 @@ private:
     void OnKeyDown(wxKeyEvent& event);
 
     void AddChildren(wxTreeItemId parentId, wxWindow* window);
-    void AddSizerChildren(wxTreeItemId parentId, wxSizer* sizer);
     void AddSizerItems(wxTreeItemId sizerNodeId, wxSizer* sizer);
     wxTreeItemId DoAddWindow(wxTreeItemId parentId, wxWindow* window);
     wxTreeItemId DoAddSizer(wxTreeItemId parentId, wxSizer* sizer);
@@ -48,6 +47,7 @@ private:
     wxTreeCtrl* m_tree;
     wxToolBar* m_toolbar;
     bool m_showSizers;
+    bool m_findWidgetCapture;
     wxDECLARE_EVENT_TABLE();
 };
 
