@@ -168,7 +168,11 @@ void InspectionFrame::SetupAUI()
 
 void InspectionFrame::Show(wxObject* selectObj, bool refreshTree)
 {
-    if (refreshTree) m_tree->RebuildTree();
+    // Always rebuild — the tree was initially built during Init() before
+    // the application's main window existed, so it only contains the
+    // inspector frame itself. Rebuilding on each show ensures an up-to-date
+    // view without requiring the user to press F1.
+    m_tree->RebuildTree();
     if (selectObj) SelectObject(selectObj);
     wxFrame::Show(true);
     Raise();
