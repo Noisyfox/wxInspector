@@ -280,9 +280,12 @@ void InspectionFrame::OnClose(wxCloseEvent& event)
     ProcessWindowEvent(evt);
 
     // Hide instead of destroying — the inspector is a persistent singleton
-    // that can be reshown via Show(). Destroying would leave g_inspectorFrame
-    // dangling in inspector.cpp.
-    wxWindow::Show(false);
+    // that can be reshown via Show(). Use Hide() rather than Show(false)
+    // because InspectionFrame::Show(wxObject*,bool) hides wxWindow::Show(bool),
+    // and the wxTopLevelWindow::Show override (needed on macOS) would be skipped.
+    // Veto the event to prevent default destruction.
+    event.Veto(true);
+    Hide();
 }
 
 } // namespace wxInspector
