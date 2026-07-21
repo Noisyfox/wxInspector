@@ -80,6 +80,7 @@ void ObjectInfoPanel::PopulateGrid(InspectableObject& obj)
         case PropertyType::Colour:
             pgProp = new wxColourProperty(prop.name, wxPG_LABEL,
                 wxColour(prop.value));
+            pgProp->SetAttribute(wxPG_COLOUR_HAS_ALPHA, true);
             break;
         case PropertyType::String:
         case PropertyType::Font:
