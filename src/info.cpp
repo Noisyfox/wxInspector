@@ -78,8 +78,12 @@ void ObjectInfoPanel::PopulateGrid(InspectableObject& obj)
             pgProp->SetValueFromString(prop.value);
             break;
         case PropertyType::Colour:
-            pgProp = new wxColourProperty(prop.name, wxPG_LABEL,
-                wxColour(prop.value));
+            // Use wxStringProperty rather than wxColourProperty — the
+            // latter restricts input to wxTheColourDatabase names, while
+            // the setter already handles hex (#RRGGBB), rgb(), and named
+            // colours via wxColour(string). This lets users type arbitrary
+            // colour values freely.
+            pgProp = new wxStringProperty(prop.name, wxPG_LABEL, prop.value);
             break;
         case PropertyType::String:
         case PropertyType::Font:
