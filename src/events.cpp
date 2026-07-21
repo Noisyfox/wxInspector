@@ -214,7 +214,7 @@ void EventLoggerPanel::ConnectEvents()
     // Connect checked window-level events
     for (size_t i = 0; i < s_windowEventCount; i++) {
         if (m_eventTypeList->IsChecked(static_cast<unsigned int>(i))) {
-            handler->Connect(s_windowEvents[i].eventType,
+            handler->Connect(wxID_ANY, s_windowEvents[i].eventType,
                 (wxObjectEventFunction)&EventLoggerPanel::OnDispatchEvent,
                 nullptr, this);
             m_boundEventTypes.push_back(s_windowEvents[i].eventType);
@@ -228,7 +228,7 @@ void EventLoggerPanel::ConnectEvents()
             for (size_t i = 0; i < extra.count; i++) {
                 unsigned int idx = baseIdx + static_cast<unsigned int>(i);
                 if (m_eventTypeList->IsChecked(idx)) {
-                    handler->Connect(extra.events[i].eventType,
+                    handler->Connect(wxID_ANY, extra.events[i].eventType,
                         (wxObjectEventFunction)&EventLoggerPanel::OnDispatchEvent,
                         nullptr, this);
                     m_boundEventTypes.push_back(extra.events[i].eventType);
