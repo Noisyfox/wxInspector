@@ -133,7 +133,7 @@ void ObjectInfoPanel::OnPropertyChanged(wxPropertyGridEvent& event)
         wxColour color;
         wxVariant variant = pgProp->GetValue();
         color << variant;
-        newValue = color.GetAsString(wxC2S_HTML_SYNTAX);
+        newValue = color.GetAsString(wxC2S_CSS_SYNTAX);
     }
     // wxBoolProperty::GetValueAsString() returns "True"/"False" (capitalized),
     // but the setters in property_provider.cpp compare against lowercase
