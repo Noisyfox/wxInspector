@@ -14,6 +14,7 @@ public:
     void ShowObject(InspectableObject& obj);
     void Clear();
     void Refresh();
+    using wxWindow::Refresh;
 
 private:
     void OnPropertyChanged(wxPropertyGridEvent& event);

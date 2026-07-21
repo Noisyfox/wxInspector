@@ -127,12 +127,28 @@ void ObjectInfoPanel::OnPropertyChanged(wxPropertyGridEvent& event)
     wxString propName = pgProp->GetName();
     wxString newValue = pgProp->GetValueAsString();
 
+    // wxBoolProperty::GetValueAsString() returns "True"/"False" (capitalized),
+    // but the setters in property_provider.cpp compare against lowercase
+    // "true"/"false". Normalize to lowercase.
+    if (pgProp->IsKindOf(CLASSINFO(wxBoolProperty))) {
+        newValue = newValue.Lower();
+    }
+
+    // Determine category for unambiguous matching when properties share names
+    wxString propCategory;
+    wxPGProperty* parent = pgProp->GetMainParent();
+    if (parent && parent->IsCategory()) {
+        propCategory = parent->GetLabel();
+    }
+
     // Re-fetch properties and find the matching setter
     if (!m_currentObj.IsValid()) return;
     wxVector<PropertyDef> props =
         PropertyProvider::Get().GetProperties(m_currentObj);
     for (auto& prop : props) {
-        if (prop.name == propName && prop.setter) {
+        if (prop.name == propName &&
+            (propCategory.empty() || prop.category == propCategory) &&
+            prop.setter) {
             prop.setter(newValue);
             break;
         }
