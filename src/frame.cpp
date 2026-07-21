@@ -212,6 +212,7 @@ void InspectionFrame::OnTreeSelectionChanged(wxCommandEvent& event)
     {
         m_info->ShowObject(inspObj);
         m_invoker->ShowObject(inspObj);
+        m_highlighter->Highlight(inspObj);
     }
     m_events->ShowObject(inspObj);
 }
