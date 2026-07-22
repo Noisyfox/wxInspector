@@ -23,7 +23,11 @@ enum {
     ID_COLLAPSE_ALL,
     ID_LAYOUT,
     ID_ABOUT,
-    ID_QUIT
+    ID_QUIT,
+    ID_VIEW_TREE,
+    ID_VIEW_INFO,
+    ID_VIEW_INVOKER,
+    ID_VIEW_EVENTS,
 };
 
 wxBEGIN_EVENT_TABLE(InspectionFrame, wxFrame)
@@ -85,8 +89,10 @@ void InspectionFrame::SetupMenuBar()
     mb->Append(fileMenu, "&File");
 
     wxMenu* viewMenu = new wxMenu();
-    viewMenu->Append(ID_EXPAND_ALL, "&Expand All\tF4");
-    viewMenu->Append(ID_COLLAPSE_ALL, "&Collapse All\tF5");
+    viewMenu->AppendCheckItem(ID_VIEW_TREE, "&Widget Tree");
+    viewMenu->AppendCheckItem(ID_VIEW_INFO, "&Object Info");
+    viewMenu->AppendCheckItem(ID_VIEW_INVOKER, "M&ethod Invoker");
+    viewMenu->AppendCheckItem(ID_VIEW_EVENTS, "&Event Logger");
     mb->Append(viewMenu, "&View");
 
     wxMenu* toolsMenu = new wxMenu();
@@ -119,6 +125,30 @@ void InspectionFrame::SetupMenuBar()
             "Ctrl+Shift+I to toggle",
             "About wxInspector", wxOK | wxICON_INFORMATION, this);
     }, ID_ABOUT);
+
+    // View menu — panel toggles
+    auto togglePane = [this](const wxString& name) {
+        wxAuiPaneInfo& pane = m_auiMgr.GetPane(name);
+        pane.Show(!pane.IsShown());
+        m_auiMgr.Update();
+    };
+    Bind(wxEVT_MENU, [togglePane](wxCommandEvent&) { togglePane("Tree"); }, ID_VIEW_TREE);
+    Bind(wxEVT_MENU, [togglePane](wxCommandEvent&) { togglePane("Info"); }, ID_VIEW_INFO);
+    Bind(wxEVT_MENU, [togglePane](wxCommandEvent&) { togglePane("Invoker"); }, ID_VIEW_INVOKER);
+    Bind(wxEVT_MENU, [togglePane](wxCommandEvent&) { togglePane("Events"); }, ID_VIEW_EVENTS);
+
+    Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& e) {
+        e.Check(m_auiMgr.GetPane("Tree").IsShown());
+    }, ID_VIEW_TREE);
+    Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& e) {
+        e.Check(m_auiMgr.GetPane("Info").IsShown());
+    }, ID_VIEW_INFO);
+    Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& e) {
+        e.Check(m_auiMgr.GetPane("Invoker").IsShown());
+    }, ID_VIEW_INVOKER);
+    Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& e) {
+        e.Check(m_auiMgr.GetPane("Events").IsShown());
+    }, ID_VIEW_EVENTS);
 }
 
 void InspectionFrame::SetupToolBar()
