@@ -16,6 +16,65 @@
 #include <wx/menu.h>
 #include <wx/aboutdlg.h>
 
+// Modal dialog with its own inspector — demonstrates that the inspector
+// works during modal loops because the inspector frame is a child of the dialog.
+class SettingsDialog : public wxDialog, public wxInspectable {
+public:
+    SettingsDialog(wxWindow* parent)
+        : wxDialog(parent, wxID_ANY, "Settings",
+                   wxDefaultPosition, wxSize(350, 250))
+    {
+        SetupInspectorAccelerator(this);
+
+        wxPanel* panel = new wxPanel(this);
+        wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
+
+        wxStaticBox* prefBox = new wxStaticBox(panel, wxID_ANY, "Preferences");
+        wxStaticBoxSizer* prefSizer = new wxStaticBoxSizer(prefBox, wxVERTICAL);
+
+        wxCheckBox* opt1 = new wxCheckBox(panel, wxID_ANY, "Enable notifications");
+        opt1->SetName("enableNotifications");
+        opt1->SetValue(true);
+        prefSizer->Add(opt1, 0, wxALL, 5);
+
+        wxCheckBox* opt2 = new wxCheckBox(panel, wxID_ANY, "Auto-save on exit");
+        opt2->SetName("autoSave");
+        prefSizer->Add(opt2, 0, wxALL, 5);
+
+        wxBoxSizer* pathRow = new wxBoxSizer(wxHORIZONTAL);
+        pathRow->Add(new wxStaticText(panel, wxID_ANY, "Save path:"),
+                     0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
+        wxTextCtrl* pathCtrl = new wxTextCtrl(panel, wxID_ANY, "/tmp/data");
+        pathCtrl->SetName("savePath");
+        pathRow->Add(pathCtrl, 1, wxEXPAND);
+        prefSizer->Add(pathRow, 0, wxEXPAND | wxALL, 5);
+
+        wxBoxSizer* langRow = new wxBoxSizer(wxHORIZONTAL);
+        langRow->Add(new wxStaticText(panel, wxID_ANY, "Language:"),
+                     0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
+        wxChoice* langChoice = new wxChoice(panel, wxID_ANY,
+            wxDefaultPosition, wxDefaultSize,
+            wxArrayString{"English", "Chinese", "Japanese", "German"});
+        langChoice->SetName("language");
+        langChoice->Select(0);
+        langRow->Add(langChoice, 1);
+        prefSizer->Add(langRow, 0, wxEXPAND | wxALL, 5);
+
+        mainSizer->Add(prefSizer, 0, wxEXPAND | wxALL, 10);
+
+        wxBoxSizer* btnRow = new wxBoxSizer(wxHORIZONTAL);
+        wxButton* okBtn = new wxButton(panel, wxID_OK, "OK");
+        okBtn->SetName("okButton");
+        wxButton* cancelBtn = new wxButton(panel, wxID_CANCEL, "Cancel");
+        cancelBtn->SetName("cancelButton");
+        btnRow->Add(okBtn, 0, wxRIGHT, 5);
+        btnRow->Add(cancelBtn, 0);
+        mainSizer->Add(btnRow, 0, wxALIGN_RIGHT | wxALL, 10);
+
+        panel->SetSizer(mainSizer);
+    }
+};
+
 class SampleFrame : public wxFrame {
 public:
     SampleFrame() : wxFrame(nullptr, wxID_ANY, "wxInspector Sample",
@@ -30,6 +89,13 @@ public:
 private:
     void SetupMenu() {
         wxMenu* fileMenu = new wxMenu();
+        fileMenu->Append(wxID_OPEN, "&Settings...\tCtrl+S",
+                         "Open settings dialog (inspectable during modal)");
+        Bind(wxEVT_MENU, [this](wxCommandEvent&) {
+            SettingsDialog dlg(this);
+            dlg.ShowModal();
+        }, wxID_OPEN);
+        fileMenu->AppendSeparator();
         fileMenu->Append(wxID_EXIT, "E&xit\tAlt+X");
         Bind(wxEVT_MENU, [this](wxCommandEvent&) { Close(true); }, wxID_EXIT);
 
