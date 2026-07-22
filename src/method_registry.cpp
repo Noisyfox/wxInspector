@@ -114,6 +114,7 @@ public:
                 if (!args[0].ToLong(&r) || !args[1].ToLong(&g) || !args[2].ToLong(&b))
                     return "Error: invalid colour values";
                 win->SetBackgroundColour(wxColour((int)r, (int)g, (int)b));
+                win->Refresh();
                 return wxString::Format("Background set to (%d, %d, %d)",
                     (int)r, (int)g, (int)b);
             }});
@@ -126,6 +127,7 @@ public:
                 if (!args[0].ToLong(&r) || !args[1].ToLong(&g) || !args[2].ToLong(&b))
                     return "Error: invalid colour values";
                 win->SetForegroundColour(wxColour((int)r, (int)g, (int)b));
+                win->Refresh();
                 return wxString::Format("Foreground set to (%d, %d, %d)",
                     (int)r, (int)g, (int)b);
             }});

@@ -107,13 +107,17 @@ public:
             win->GetForegroundColour().GetAsString(), false, {},
             [win]() { return win->GetForegroundColour().GetAsString(); },
             [win](const wxString& v) {
-                win->SetForegroundColour(wxColour(v)); return true;
+                win->SetForegroundColour(wxColour(v));
+                win->Refresh();
+                return true;
             }});
         props.push_back({"Bg Colour", "Appearance", PropertyType::Colour,
             win->GetBackgroundColour().GetAsString(), false, {},
             [win]() { return win->GetBackgroundColour().GetAsString(); },
             [win](const wxString& v) {
-                win->SetBackgroundColour(wxColour(v)); return true;
+                win->SetBackgroundColour(wxColour(v));
+                win->Refresh();
+                return true;
             }});
         props.push_back({"Font", "Appearance", PropertyType::ReadOnly,
             win->GetFont().GetNativeFontInfoDesc(), true, {},
