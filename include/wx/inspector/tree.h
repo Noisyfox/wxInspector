@@ -21,6 +21,7 @@ public:
     void SelectObject(wxObject* obj);
     void FindWidget();
     InspectableObject GetSelectedObject() const;
+    wxWindow* GetContainerWindow() const;
     wxTreeCtrl* GetTreeCtrl() { return m_tree; }
 
     bool IsSizerModeEnabled() const { return m_showSizers; }

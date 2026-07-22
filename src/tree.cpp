@@ -269,6 +269,26 @@ InspectableObject InspectionTree::GetSelectedObject() const
     return InspectableObject::FromWindow(nullptr);
 }
 
+wxWindow* InspectionTree::GetContainerWindow() const
+{
+    wxTreeItemId item = m_tree->GetSelection();
+    if (!item.IsOk())
+        return nullptr;
+
+    // Walk up from the selected item to find the nearest window ancestor
+    while (item.IsOk())
+    {
+        ObjectTreeItemData* d = dynamic_cast<ObjectTreeItemData*>(
+            m_tree->GetItemData(item));
+        if (d && d->m_object && d->m_kind == InspectableObject::Kind::Window)
+        {
+            return static_cast<wxWindow*>(d->m_object);
+        }
+        item = m_tree->GetItemParent(item);
+    }
+    return nullptr;
+}
+
 wxTreeItemId InspectionTree::FindItemForObject(wxTreeItemId parent, wxObject* target)
 {
     wxTreeItemIdValue cookie;
