@@ -1,4 +1,7 @@
 #include "wx/inspector/inspector.h"
+
+#ifndef WXINSPECTOR_DISABLE
+
 #include "wx/inspector/frame.h"
 #include "wx/inspector/object.h"
 #include "wx/inspector/property_provider.h"
@@ -9,7 +12,7 @@
 
 namespace wxInspector {
 
-void RegisterPlugin(wxInspectorPlugin* plugin)
+void detail::RegisterPluginImpl(wxInspectorPlugin* plugin)
 {
     PropertyProvider::Get().RegisterPlugin(plugin);
     MethodRegistry::Get().RegisterPlugin(plugin);
@@ -17,13 +20,13 @@ void RegisterPlugin(wxInspectorPlugin* plugin)
 
 } // namespace wxInspector
 
-wxInspectable::wxInspectable()
+wxInspectableImpl::wxInspectableImpl()
     : m_inspectorFrame(nullptr)
     , m_accelWindow(nullptr)
 {
 }
 
-void wxInspectable::SetupInspectorAccelerator(wxWindow* window)
+void wxInspectableImpl::SetupInspectorAccelerator(wxWindow* window)
 {
     m_accelWindow = window;
     if (!window)
@@ -34,10 +37,10 @@ void wxInspectable::SetupInspectorAccelerator(wxWindow* window)
     };
     wxAcceleratorTable accel(sizeof(entries) / sizeof(entries[0]), entries);
     window->SetAcceleratorTable(accel);
-    window->Bind(wxEVT_MENU, &wxInspectable::OnToggleInspector, this, ID_INSPECTOR_TOGGLE);
+    window->Bind(wxEVT_MENU, &wxInspectableImpl::OnToggleInspector, this, ID_INSPECTOR_TOGGLE);
 }
 
-void wxInspectable::OnToggleInspector(wxCommandEvent&)
+void wxInspectableImpl::OnToggleInspector(wxCommandEvent&)
 {
     if (IsInspectorVisible())
         HideInspector();
@@ -45,7 +48,7 @@ void wxInspectable::OnToggleInspector(wxCommandEvent&)
         ShowInspector();
 }
 
-void wxInspectable::ShowInspector(wxObject* selectObj)
+void wxInspectableImpl::ShowInspector(wxObject* selectObj)
 {
     if (!m_inspectorFrame)
     {
@@ -56,25 +59,27 @@ void wxInspectable::ShowInspector(wxObject* selectObj)
     m_inspectorFrame->Show(selectObj);
 }
 
-void wxInspectable::HideInspector()
+void wxInspectableImpl::HideInspector()
 {
     if (m_inspectorFrame)
         m_inspectorFrame->Hide();
 }
 
-bool wxInspectable::IsInspectorVisible() const
+bool wxInspectableImpl::IsInspectorVisible() const
 {
     return m_inspectorFrame && m_inspectorFrame->IsVisible();
 }
 
-void wxInspectable::RefreshInspectorTree()
+void wxInspectableImpl::RefreshInspectorTree()
 {
     if (m_inspectorFrame)
         m_inspectorFrame->RefreshTree();
 }
 
-void wxInspectable::SelectInspectorObject(wxObject* obj)
+void wxInspectableImpl::SelectInspectorObject(wxObject* obj)
 {
     if (m_inspectorFrame)
         m_inspectorFrame->SelectObject(obj);
 }
+
+#endif // WXINSPECTOR_DISABLE
