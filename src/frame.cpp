@@ -178,8 +178,8 @@ void InspectionFrame::SetupAUI()
     m_auiMgr.AddPane(m_tree, treePane);
 
     wxAuiPaneInfo infoPane;
-    infoPane.Name("Info").Caption("Object Info").Center().Layer(0)
-            .Row(0).Position(0).BestSize(400, 400).MinSize(200, 200);
+    infoPane.Name("Info").Caption("Object Info").Right().Layer(0)
+            .Row(0).Position(0).BestSize(300, 400).MinSize(200, 200);
     m_auiMgr.AddPane(m_info, infoPane);
 
     wxAuiPaneInfo invokerPane;
@@ -188,8 +188,8 @@ void InspectionFrame::SetupAUI()
     m_auiMgr.AddPane(m_invoker, invokerPane);
 
     wxAuiPaneInfo eventPane;
-    eventPane.Name("Events").Caption("Event Logger").Bottom().Layer(0)
-             .Row(1).Position(0).BestSize(600, 200).MinSize(300, 150);
+    eventPane.Name("Events").Caption("Event Logger").Center().Layer(0)
+             .BestSize(400, 400).MinSize(200, 200);
     m_auiMgr.AddPane(m_events, eventPane);
 
     m_auiMgr.Update();
