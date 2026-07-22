@@ -24,6 +24,7 @@ enum {
     ID_TOGGLE_SIZERS,
     ID_EXPAND_ALL,
     ID_COLLAPSE_ALL,
+    ID_LAYOUT,
     ID_ABOUT,
     ID_QUIT
 };
@@ -115,6 +116,7 @@ void InspectionFrame::SetupMenuBar()
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { Close(); }, ID_QUIT);
     Bind(wxEVT_MENU, &InspectionFrame::OnHighlight, this, ID_HIGHLIGHT);
     Bind(wxEVT_MENU, &InspectionFrame::OnFindWidget, this, ID_FIND_WIDGET);
+    Bind(wxEVT_MENU, &InspectionFrame::OnLayout, this, ID_LAYOUT);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) {
         wxMessageBox(
             wxString::FromUTF8("wxInspector — Widget Inspection Tool\n") +
@@ -136,6 +138,8 @@ void InspectionFrame::SetupToolBar()
                      "Toggle Sizers (F3)");
     tb->AddTool(ID_HIGHLIGHT, "Highlight",
                 wxArtProvider::GetBitmap(wxART_TIP), "Highlight (F6)");
+    tb->AddTool(ID_LAYOUT, "Layout",
+                wxArtProvider::GetBitmap(wxART_EXECUTABLE_FILE), "Layout");
     tb->Realize();
 }
 
@@ -237,6 +241,13 @@ void InspectionFrame::OnHighlight(wxCommandEvent&)
 void InspectionFrame::OnFindWidget(wxCommandEvent&)
 {
     m_tree->FindWidget();
+}
+
+void InspectionFrame::OnLayout(wxCommandEvent&)
+{
+    wxWindow* win = m_tree->GetContainerWindow();
+    if (win)
+        win->Layout();
 }
 
 void InspectionFrame::SaveLayout()

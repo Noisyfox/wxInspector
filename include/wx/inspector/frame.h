@@ -38,6 +38,7 @@ private:
     void OnTreeSelectionChanged(wxCommandEvent& event);
     void OnHighlight(wxCommandEvent& event);
     void OnFindWidget(wxCommandEvent& event);
+    void OnLayout(wxCommandEvent& event);
     void OnClose(wxCloseEvent& event);
 
     void SetupMenuBar();
