@@ -6,6 +6,7 @@
 #include <wx/button.h>
 #include <wx/dataview.h>
 #include <wx/vector.h>
+#include <wx/eventfilter.h>
 #include "wx/inspector/object.h"
 
 namespace wxInspector {
@@ -17,7 +18,7 @@ struct EventLogEntry {
     wxString category;  // Mouse, Keyboard, Focus, Size, Command, Misc
 };
 
-class EventLoggerPanel : public wxPanel {
+class EventLoggerPanel : public wxPanel, public wxEventFilter {
 public:
     EventLoggerPanel(wxWindow* parent);
 
@@ -32,11 +33,9 @@ private:
     void OnClear(wxCommandEvent& event);
 
     void PopulateEventTypes(wxClassInfo* classInfo);
-    void ConnectEvents();
-    void DisconnectEvents();
 
-    // Single dispatch handler for all captured events (called via Connect).
-    void OnDispatchEvent(wxEvent& event);
+    // wxEventFilter override — intercepts all events globally.
+    int FilterEvent(wxEvent& event) override;
 
     // Records one entry in the log.
     void OnEvent(wxEvent& event, const wxString& typeName,
@@ -53,7 +52,6 @@ private:
     bool m_isCapturing;
 
     wxVector<EventLogEntry> m_entries;
-    wxVector<int> m_boundEventTypes;  // event-type ints that are currently bound
 
     static const int MAX_ENTRIES = 500;
 };

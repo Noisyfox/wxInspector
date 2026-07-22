@@ -24,92 +24,103 @@ struct EventTypeInfo {
     const char* category;
 };
 
-// Core wxWindow events
-static const EventTypeInfo s_windowEvents[] = {
-    { wxEVT_LEFT_DOWN,           "LeftDown",           "Mouse" },
-    { wxEVT_LEFT_UP,             "LeftUp",             "Mouse" },
-    { wxEVT_LEFT_DCLICK,         "LeftDClick",         "Mouse" },
-    { wxEVT_MIDDLE_DOWN,         "MiddleDown",         "Mouse" },
-    { wxEVT_MIDDLE_UP,           "MiddleUp",           "Mouse" },
-    { wxEVT_MIDDLE_DCLICK,       "MiddleDClick",       "Mouse" },
-    { wxEVT_RIGHT_DOWN,          "RightDown",          "Mouse" },
-    { wxEVT_RIGHT_UP,            "RightUp",            "Mouse" },
-    { wxEVT_RIGHT_DCLICK,        "RightDClick",        "Mouse" },
-    { wxEVT_MOTION,              "Motion",             "Mouse" },
-    { wxEVT_ENTER_WINDOW,        "EnterWindow",        "Mouse" },
-    { wxEVT_LEAVE_WINDOW,        "LeaveWindow",        "Mouse" },
-    { wxEVT_MOUSEWHEEL,          "MouseWheel",         "Mouse" },
-    { wxEVT_MOUSE_CAPTURE_LOST,  "MouseCaptureLost",   "Mouse" },
-    { wxEVT_KEY_DOWN,            "KeyDown",            "Keyboard" },
-    { wxEVT_KEY_UP,              "KeyUp",              "Keyboard" },
-    { wxEVT_CHAR,                "Char",               "Keyboard" },
-    { wxEVT_SET_FOCUS,           "SetFocus",           "Focus" },
-    { wxEVT_KILL_FOCUS,          "KillFocus",          "Focus" },
-    { wxEVT_SIZE,                "Size",               "Size" },
-    { wxEVT_MOVE,                "Move",               "Size" },
-    { wxEVT_PAINT,               "Paint",              "Misc" },
-    { wxEVT_ERASE_BACKGROUND,    "EraseBackground",    "Misc" },
-    { wxEVT_IDLE,                "Idle",               "Misc" },
-    { wxEVT_ACTIVATE,            "Activate",           "Focus" },
-    { wxEVT_SHOW,                "Show",               "Misc" },
-    { wxEVT_BUTTON,              "Button",             "Command" },
-    { wxEVT_CHECKBOX,            "CheckBox",           "Command" },
-    { wxEVT_CHOICE,              "Choice",             "Command" },
-    { wxEVT_TEXT,                "Text",               "Command" },
-    { wxEVT_TEXT_ENTER,          "TextEnter",          "Command" },
-    { wxEVT_COMBOBOX,            "ComboBox",           "Command" },
-    { wxEVT_RADIOBUTTON,         "RadioButton",        "Command" },
-    { wxEVT_SLIDER,              "Slider",             "Command" },
-    { wxEVT_SPINCTRL,            "SpinCtrl",           "Command" },
-    { wxEVT_SCROLL_TOP,          "ScrollTop",          "Command" },
-    { wxEVT_SCROLL_BOTTOM,       "ScrollBottom",       "Command" },
-    { wxEVT_SCROLL_LINEUP,       "ScrollLineUp",       "Command" },
-    { wxEVT_SCROLL_LINEDOWN,     "ScrollLineDown",     "Command" },
-    { wxEVT_SCROLL_PAGEUP,       "ScrollPageUp",       "Command" },
-    { wxEVT_SCROLL_PAGEDOWN,     "ScrollPageDown",     "Command" },
-    { wxEVT_SCROLL_THUMBTRACK,   "ScrollThumbTrack",   "Command" },
-    { wxEVT_SCROLL_THUMBRELEASE, "ScrollThumbRelease", "Command" },
-    { wxEVT_SCROLL_CHANGED,      "ScrollChanged",      "Command" },
-};
-static const size_t s_windowEventCount = sizeof(s_windowEvents) / sizeof(s_windowEvents[0]);
+// --- Lazy-initialized event type tables ---
+//
+// Event type values (wxEVT_LEFT_DOWN etc.) are assigned at runtime by
+// wxNewEventType(). File-scope static tables would capture them at static
+// init time — before wxWidgets assigns them — resulting in all zeros.
+// Function-local statics are initialized on first call, which happens
+// after main(), when all wx event types are guaranteed to be valid.
 
-// Extra per-class events (beyond the generic window events above)
-struct ExtraEventInfo {
-    wxClassInfo* classInfo;
-    const EventTypeInfo* events;
-    size_t count;
-};
+static const EventTypeInfo* GetWindowEvents(size_t& count)
+{
+    static const EventTypeInfo table[] = {
+        { wxEVT_LEFT_DOWN,           "LeftDown",           "Mouse" },
+        { wxEVT_LEFT_UP,             "LeftUp",             "Mouse" },
+        { wxEVT_LEFT_DCLICK,         "LeftDClick",         "Mouse" },
+        { wxEVT_MIDDLE_DOWN,         "MiddleDown",         "Mouse" },
+        { wxEVT_MIDDLE_UP,           "MiddleUp",           "Mouse" },
+        { wxEVT_MIDDLE_DCLICK,       "MiddleDClick",       "Mouse" },
+        { wxEVT_RIGHT_DOWN,          "RightDown",          "Mouse" },
+        { wxEVT_RIGHT_UP,            "RightUp",            "Mouse" },
+        { wxEVT_RIGHT_DCLICK,        "RightDClick",        "Mouse" },
+        { wxEVT_MOTION,              "Motion",             "Mouse" },
+        { wxEVT_ENTER_WINDOW,        "EnterWindow",        "Mouse" },
+        { wxEVT_LEAVE_WINDOW,        "LeaveWindow",        "Mouse" },
+        { wxEVT_MOUSEWHEEL,          "MouseWheel",         "Mouse" },
+        { wxEVT_MOUSE_CAPTURE_LOST,  "MouseCaptureLost",   "Mouse" },
+        { wxEVT_KEY_DOWN,            "KeyDown",            "Keyboard" },
+        { wxEVT_KEY_UP,              "KeyUp",              "Keyboard" },
+        { wxEVT_CHAR,                "Char",               "Keyboard" },
+        { wxEVT_SET_FOCUS,           "SetFocus",           "Focus" },
+        { wxEVT_KILL_FOCUS,          "KillFocus",          "Focus" },
+        { wxEVT_SIZE,                "Size",               "Size" },
+        { wxEVT_MOVE,                "Move",               "Size" },
+        { wxEVT_PAINT,               "Paint",              "Misc" },
+        { wxEVT_ERASE_BACKGROUND,    "EraseBackground",    "Misc" },
+        { wxEVT_IDLE,                "Idle",               "Misc" },
+        { wxEVT_ACTIVATE,            "Activate",           "Focus" },
+        { wxEVT_SHOW,                "Show",               "Misc" },
+        { wxEVT_BUTTON,              "Button",             "Command" },
+        { wxEVT_CHECKBOX,            "CheckBox",           "Command" },
+        { wxEVT_CHOICE,              "Choice",             "Command" },
+        { wxEVT_TEXT,                "Text",               "Command" },
+        { wxEVT_TEXT_ENTER,          "TextEnter",          "Command" },
+        { wxEVT_COMBOBOX,            "ComboBox",           "Command" },
+        { wxEVT_RADIOBUTTON,         "RadioButton",        "Command" },
+        { wxEVT_SLIDER,              "Slider",             "Command" },
+        { wxEVT_SPINCTRL,            "SpinCtrl",           "Command" },
+        { wxEVT_SCROLL_TOP,          "ScrollTop",          "Command" },
+        { wxEVT_SCROLL_BOTTOM,       "ScrollBottom",       "Command" },
+        { wxEVT_SCROLL_LINEUP,       "ScrollLineUp",       "Command" },
+        { wxEVT_SCROLL_LINEDOWN,     "ScrollLineDown",     "Command" },
+        { wxEVT_SCROLL_PAGEUP,       "ScrollPageUp",       "Command" },
+        { wxEVT_SCROLL_PAGEDOWN,     "ScrollPageDown",     "Command" },
+        { wxEVT_SCROLL_THUMBTRACK,   "ScrollThumbTrack",   "Command" },
+        { wxEVT_SCROLL_THUMBRELEASE, "ScrollThumbRelease", "Command" },
+        { wxEVT_SCROLL_CHANGED,      "ScrollChanged",      "Command" },
+    };
+    count = sizeof(table) / sizeof(table[0]);
+    return table;
+}
 
-static const EventTypeInfo s_textEvents[] = {
-    { wxEVT_TEXT,        "Text",        "Command" },
-    { wxEVT_TEXT_ENTER,  "TextEnter",   "Command" },
-    { wxEVT_TEXT_MAXLEN, "TextMaxLen",  "Command" },
-};
-
-static const ExtraEventInfo s_extraEvents[] = {
-    { wxCLASSINFO(wxTextCtrl), s_textEvents,
-      sizeof(s_textEvents) / sizeof(s_textEvents[0]) },
-};
+static const EventTypeInfo* GetTextCtrlEvents(size_t& count)
+{
+    static const EventTypeInfo table[] = {
+        { wxEVT_TEXT,        "Text",        "Command" },
+        { wxEVT_TEXT_ENTER,  "TextEnter",   "Command" },
+        { wxEVT_TEXT_MAXLEN, "TextMaxLen",  "Command" },
+    };
+    count = sizeof(table) / sizeof(table[0]);
+    return table;
+}
 
 // Helper: look up event info by event-type int. Returns true if found.
 static bool FindEventInfo(int evtType, const char*& outName, const char*& outCategory)
 {
-    for (size_t i = 0; i < s_windowEventCount; i++) {
-        if (s_windowEvents[i].eventType == evtType) {
-            outName = s_windowEvents[i].name;
-            outCategory = s_windowEvents[i].category;
+    size_t count;
+    const EventTypeInfo* events;
+
+    // Search window-level events
+    events = GetWindowEvents(count);
+    for (size_t i = 0; i < count; i++) {
+        if (events[i].eventType == evtType) {
+            outName = events[i].name;
+            outCategory = events[i].category;
             return true;
         }
     }
-    for (auto& extra : s_extraEvents) {
-        for (size_t i = 0; i < extra.count; i++) {
-            if (extra.events[i].eventType == evtType) {
-                outName = extra.events[i].name;
-                outCategory = extra.events[i].category;
-                return true;
-            }
+
+    // Search extra per-class events
+    events = GetTextCtrlEvents(count);
+    for (size_t i = 0; i < count; i++) {
+        if (events[i].eventType == evtType) {
+            outName = events[i].name;
+            outCategory = events[i].category;
+            return true;
         }
     }
+
     return false;
 }
 
@@ -164,23 +175,26 @@ void EventLoggerPanel::PopulateEventTypes(wxClassInfo* classInfo)
     m_eventTypeList->Clear();
     if (!classInfo) return;
 
+    size_t count;
+    const EventTypeInfo* events;
+
     // Always add window-level events
-    for (size_t i = 0; i < s_windowEventCount; i++) {
+    events = GetWindowEvents(count);
+    for (size_t i = 0; i < count; i++) {
         int idx = m_eventTypeList->Append(
-            wxString(s_windowEvents[i].name) + wxS(" (") +
-            s_windowEvents[i].category + wxS(")"));
+            wxString(events[i].name) + wxS(" (") +
+            events[i].category + wxS(")"));
         m_eventTypeList->Check(static_cast<unsigned int>(idx));
     }
 
     // Add control-specific extra events
-    for (auto& extra : s_extraEvents) {
-        if (classInfo->IsKindOf(extra.classInfo)) {
-            for (size_t i = 0; i < extra.count; i++) {
-                int idx = m_eventTypeList->Append(
-                    wxString(extra.events[i].name) + wxS(" (") +
-                    extra.events[i].category + wxS(")"));
-                m_eventTypeList->Check(static_cast<unsigned int>(idx));
-            }
+    if (classInfo->IsKindOf(wxCLASSINFO(wxTextCtrl))) {
+        events = GetTextCtrlEvents(count);
+        for (size_t i = 0; i < count; i++) {
+            int idx = m_eventTypeList->Append(
+                wxString(events[i].name) + wxS(" (") +
+                events[i].category + wxS(")"));
+            m_eventTypeList->Check(static_cast<unsigned int>(idx));
         }
     }
 }
@@ -189,7 +203,7 @@ void EventLoggerPanel::StartCapture()
 {
     if (!m_targetWindow || m_isCapturing) return;
 
-    ConnectEvents();
+    wxEvtHandler::AddFilter(this);
     m_isCapturing = true;
     m_startBtn->Disable();
     m_stopBtn->Enable();
@@ -199,73 +213,36 @@ void EventLoggerPanel::StopCapture()
 {
     if (!m_isCapturing) return;
 
-    DisconnectEvents();
+    wxEvtHandler::RemoveFilter(this);
     m_isCapturing = false;
     m_startBtn->Enable();
     m_stopBtn->Disable();
 }
 
-void EventLoggerPanel::ConnectEvents()
+int EventLoggerPanel::FilterEvent(wxEvent& event)
 {
-    if (!m_targetWindow) return;
+    // Quick reject: ensure we have a target and are capturing
+    if (!m_targetWindow)
+        return Event_Skip;
 
-    wxEvtHandler* handler = m_targetWindow->GetEventHandler();
+    // Only capture events for the target window.
+    // Note: GetEventObject() returns the window that ORIGINATED the event.
+    // For mouse/keyboard events on the target itself this matches directly.
+    // Command events from child controls have the child as the event object
+    // and will not be captured here — this matches the original per-window
+    // Bind behaviour which also only captures events dispatched through the
+    // target window's own event handler.
+    if (event.GetEventObject() != m_targetWindow)
+        return Event_Skip;
 
-    // Connect checked window-level events
-    for (size_t i = 0; i < s_windowEventCount; i++) {
-        if (m_eventTypeList->IsChecked(static_cast<unsigned int>(i))) {
-            handler->Connect(wxID_ANY, s_windowEvents[i].eventType,
-                (wxObjectEventFunction)&EventLoggerPanel::OnDispatchEvent,
-                nullptr, this);
-            m_boundEventTypes.push_back(s_windowEvents[i].eventType);
-        }
-    }
-
-    // Connect checked extra events
-    unsigned int baseIdx = static_cast<unsigned int>(s_windowEventCount);
-    for (auto& extra : s_extraEvents) {
-        if (m_targetWindow->GetClassInfo()->IsKindOf(extra.classInfo)) {
-            for (size_t i = 0; i < extra.count; i++) {
-                unsigned int idx = baseIdx + static_cast<unsigned int>(i);
-                if (m_eventTypeList->IsChecked(idx)) {
-                    handler->Connect(wxID_ANY, extra.events[i].eventType,
-                        (wxObjectEventFunction)&EventLoggerPanel::OnDispatchEvent,
-                        nullptr, this);
-                    m_boundEventTypes.push_back(extra.events[i].eventType);
-                }
-            }
-        }
-        baseIdx += static_cast<unsigned int>(extra.count);
-    }
-}
-
-void EventLoggerPanel::DisconnectEvents()
-{
-    if (!m_targetWindow) return;
-
-    wxEvtHandler* handler = m_targetWindow->GetEventHandler();
-
-    // Disconnect by exact event type + method pointer + event sink.
-    // Passing nullptr for the function would match all handlers for each
-    // event type, but we use the precise form to be safe.
-    for (int evtType : m_boundEventTypes) {
-        handler->Disconnect(wxID_ANY, wxID_ANY, evtType,
-            (wxObjectEventFunction)&EventLoggerPanel::OnDispatchEvent,
-            nullptr, this);
-    }
-    m_boundEventTypes.clear();
-}
-
-void EventLoggerPanel::OnDispatchEvent(wxEvent& event)
-{
     const char* name = nullptr;
     const char* category = nullptr;
     if (FindEventInfo(event.GetEventType(), name, category)) {
         OnEvent(event, name, category);
     }
-    // Unknown events fall through without Skip() here — they will propagate
-    // naturally because Connect doesn't consume the event.
-    // We still call Skip() inside OnEvent for the known ones.
+
+    // Never consume the event — always let it propagate normally.
+    return Event_Skip;
 }
 
 void EventLoggerPanel::OnEvent(wxEvent& event, const wxString& typeName,
