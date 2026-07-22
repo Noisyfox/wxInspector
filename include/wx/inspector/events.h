@@ -3,6 +3,7 @@
 
 #include <wx/panel.h>
 #include <wx/checklst.h>
+#include <wx/checkbox.h>
 #include <wx/button.h>
 #include <wx/dataview.h>
 #include <wx/vector.h>
@@ -43,6 +44,7 @@ private:
     wxString FormatEventData(wxEvent& event, const wxString& typeName);
 
     wxCheckListBox* m_eventTypeList;
+    wxCheckBox* m_captureChildrenChk;
     wxButton* m_startBtn;
     wxButton* m_stopBtn;
     wxButton* m_clearBtn;

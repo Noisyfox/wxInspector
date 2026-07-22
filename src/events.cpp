@@ -137,7 +137,12 @@ EventLoggerPanel::EventLoggerPanel(wxWindow* parent)
     m_stopBtn->Disable();
     btnRow->Add(m_startBtn, 0, wxRIGHT, 4);
     btnRow->Add(m_stopBtn,  0, wxRIGHT, 4);
-    btnRow->Add(m_clearBtn, 0);
+    btnRow->Add(m_clearBtn, 0, wxRIGHT, 8);
+    m_captureChildrenChk = new wxCheckBox(this, wxID_ANY, "Capture children");
+    m_captureChildrenChk->SetToolTip(
+        "When checked, events from child widgets of the selected window "
+        "are also captured.");
+    btnRow->Add(m_captureChildrenChk, 0, wxALIGN_CENTER_VERTICAL);
     mainSizer->Add(btnRow, 0, wxEXPAND | wxALL, 4);
 
     // --- Event type checklist ---
@@ -225,14 +230,36 @@ int EventLoggerPanel::FilterEvent(wxEvent& event)
     if (!m_targetWindow)
         return Event_Skip;
 
-    // Only capture events for the target window.
-    // Note: GetEventObject() returns the window that ORIGINATED the event.
-    // For mouse/keyboard events on the target itself this matches directly.
-    // Command events from child controls have the child as the event object
-    // and will not be captured here — this matches the original per-window
-    // Bind behaviour which also only captures events dispatched through the
-    // target window's own event handler.
-    if (event.GetEventObject() != m_targetWindow)
+    // Determine whether this event belongs to the target window.
+    // GetEventObject() returns the window that originated the event —
+    // for mouse clicks that's the innermost child under the cursor,
+    // for command events it's the control that fired.
+    wxWindow* eventWin = wxDynamicCast(event.GetEventObject(), wxWindow);
+    if (!eventWin)
+        return Event_Skip;
+
+    bool isTargetOrChild;
+    if (m_captureChildrenChk->IsChecked())
+    {
+        // Walk up the parent chain: capture if eventWin is the target
+        // itself or any descendant of the target.
+        isTargetOrChild = false;
+        for (wxWindow* w = eventWin; w; w = w->GetParent())
+        {
+            if (w == m_targetWindow)
+            {
+                isTargetOrChild = true;
+                break;
+            }
+        }
+    }
+    else
+    {
+        // Exact match only — capture events on the target window itself.
+        isTargetOrChild = (eventWin == m_targetWindow);
+    }
+
+    if (!isTargetOrChild)
         return Event_Skip;
 
     const char* name = nullptr;
