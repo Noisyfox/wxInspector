@@ -155,9 +155,13 @@ EventLoggerPanel::EventLoggerPanel(wxWindow* parent)
 
     // --- Log view ---
     m_logView = new wxDataViewListCtrl(this, ID_LOG_VIEW);
-    m_logView->AppendTextColumn("Timestamp", wxDATAVIEW_CELL_INERT, 140);
-    m_logView->AppendTextColumn("Event",     wxDATAVIEW_CELL_INERT, 120);
-    m_logView->AppendTextColumn("Data",      wxDATAVIEW_CELL_INERT, 300);
+    wxDataViewColumn* col;
+    col = m_logView->AppendTextColumn("Timestamp", wxDATAVIEW_CELL_INERT, 70);
+    col->SetMinWidth(70);
+    col = m_logView->AppendTextColumn("Event",     wxDATAVIEW_CELL_INERT, 120);
+    col->SetMinWidth(120);
+    col = m_logView->AppendTextColumn("Data",      wxDATAVIEW_CELL_INERT, 300);
+    col->SetMinWidth(150);
     mainSizer->Add(m_logView, 1, wxEXPAND | wxALL, 4);
 
     SetSizer(mainSizer);
