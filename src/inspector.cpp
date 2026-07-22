@@ -7,7 +7,6 @@
 #include "wx/inspector/property_provider.h"
 #include "wx/inspector/method_registry.h"
 #include <wx/accel.h>
-#include <wx/config.h>
 #include <wx/window.h>
 
 namespace wxInspector {

@@ -2,10 +2,8 @@
 #define WX_INSPECTOR_INSPECTOR_H
 
 #include <wx/object.h>
-#include <wx/app.h>
 #include "wx/inspector/plugin.h"
 
-class wxConfigBase;
 class wxCommandEvent;
 
 namespace wxInspector {

@@ -4,7 +4,6 @@
 #include <wx/stattext.h>
 #include <wx/statbox.h>
 #include <wx/tokenzr.h>
-#include <wx/clipbrd.h>
 
 namespace wxInspector {
 

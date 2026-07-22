@@ -3,7 +3,6 @@
 
 #include <wx/string.h>
 #include <wx/object.h>
-#include <wx/dynarray.h>
 #include <wx/window.h>
 #include <functional>
 #include "wx/inspector/object.h"
