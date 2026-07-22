@@ -25,7 +25,6 @@ wxInspectable::wxInspectable()
 
 wxInspectable::~wxInspectable()
 {
-    delete m_inspectorFrame;
 }
 
 void wxInspectable::SetupInspectorAccelerator(wxWindow* window)
