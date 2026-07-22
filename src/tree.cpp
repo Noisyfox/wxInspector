@@ -3,6 +3,7 @@
 #include <wx/sizer.h>
 #include <wx/artprov.h>
 #include <wx/utils.h>
+#include <wx/menu.h>
 
 namespace wxInspector {
 
@@ -23,11 +24,14 @@ enum {
     ID_TREE_TOGGLE_SIZERS,
     ID_TREE_EXPAND_ALL,
     ID_TREE_COLLAPSE_ALL,
-    ID_TREE_FIND_WIDGET
+    ID_TREE_FIND_WIDGET,
+    ID_TREE_LAYOUT,
+    ID_TREE_LAYOUT_PARENT
 };
 
 wxBEGIN_EVENT_TABLE(InspectionTree, wxPanel)
     EVT_TREE_SEL_CHANGED(wxID_ANY, InspectionTree::OnTreeSelChanged)
+    EVT_TREE_ITEM_MENU(wxID_ANY, InspectionTree::OnContextMenu)
 wxEND_EVENT_TABLE()
 
 InspectionTree::InspectionTree(wxWindow* parent)
@@ -63,6 +67,8 @@ InspectionTree::InspectionTree(wxWindow* parent)
     Bind(wxEVT_TOOL, &InspectionTree::OnExpandAll, this, ID_TREE_EXPAND_ALL);
     Bind(wxEVT_TOOL, &InspectionTree::OnCollapseAll, this, ID_TREE_COLLAPSE_ALL);
     Bind(wxEVT_TOOL, &InspectionTree::OnFindWidget, this, ID_TREE_FIND_WIDGET);
+    Bind(wxEVT_MENU, &InspectionTree::OnLayout, this, ID_TREE_LAYOUT);
+    Bind(wxEVT_MENU, &InspectionTree::OnLayoutParent, this, ID_TREE_LAYOUT_PARENT);
     m_tree->Bind(wxEVT_KEY_DOWN, &InspectionTree::OnKeyDown, this);
 
     Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& evt) {
@@ -348,6 +354,56 @@ void InspectionTree::OnKeyDown(wxKeyEvent& event)
     default: break;
     }
     event.Skip();
+}
+
+void InspectionTree::OnContextMenu(wxTreeEvent& event)
+{
+    wxTreeItemId item = event.GetItem();
+    if (!item.IsOk() || item == m_tree->GetRootItem())
+        return;
+
+    // Select the right-clicked item
+    m_tree->SelectItem(item);
+
+    ObjectTreeItemData* d = dynamic_cast<ObjectTreeItemData*>(
+        m_tree->GetItemData(item));
+    if (!d || !d->m_object)
+        return;
+
+    bool isWindow = (d->m_kind == InspectableObject::Kind::Window);
+
+    wxMenu menu;
+
+    menu.Append(ID_TREE_LAYOUT, "Layout");
+
+    if (isWindow)
+    {
+        wxWindow* container = GetContainerWindow();
+        wxWindow* parent = container ? container->GetParent() : nullptr;
+        wxMenuItem* layoutParentItem = menu.Append(ID_TREE_LAYOUT_PARENT, "Layout Parent");
+        if (!parent)
+            layoutParentItem->Enable(false);
+    }
+
+    PopupMenu(&menu);
+}
+
+void InspectionTree::OnLayout(wxCommandEvent&)
+{
+    wxWindow* win = GetContainerWindow();
+    if (win)
+        win->Layout();
+}
+
+void InspectionTree::OnLayoutParent(wxCommandEvent&)
+{
+    wxWindow* win = GetContainerWindow();
+    if (win)
+    {
+        wxWindow* parent = win->GetParent();
+        if (parent)
+            parent->Layout();
+    }
 }
 
 } // namespace wxInspector

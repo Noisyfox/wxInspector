@@ -34,6 +34,9 @@ private:
     void OnCollapseAll(wxCommandEvent& event);
     void OnFindWidget(wxCommandEvent& event);
     void OnKeyDown(wxKeyEvent& event);
+    void OnContextMenu(wxTreeEvent& event);
+    void OnLayout(wxCommandEvent& event);
+    void OnLayoutParent(wxCommandEvent& event);
 
     void AddChildren(wxTreeItemId parentId, wxWindow* window);
     void AddSizerItems(wxTreeItemId sizerNodeId, wxSizer* sizer);
