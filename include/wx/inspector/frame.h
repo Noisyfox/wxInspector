@@ -31,9 +31,6 @@ public:
     EventLoggerPanel* GetEventPanel() { return m_events; }
     InspectionHighlighter* GetHighlighter() { return m_highlighter; }
 
-    void SaveLayout();
-    void LoadLayout();
-
 private:
     void OnTreeSelectionChanged(wxCommandEvent& event);
     void OnHighlight(wxCommandEvent& event);

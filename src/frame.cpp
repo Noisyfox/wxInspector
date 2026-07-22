@@ -9,7 +9,6 @@
 #include <wx/menu.h>
 #include <wx/toolbar.h>
 #include <wx/artprov.h>
-#include <wx/config.h>
 #include <wx/accel.h>
 #include <wx/msgdlg.h>
 
@@ -56,8 +55,6 @@ InspectionFrame::InspectionFrame(wxWindow* parent, wxPoint pos, wxSize size)
     SetupMenuBar();
     SetupToolBar();
     SetupAUI();
-
-    LoadLayout();
 
     // Keyboard accelerators
     wxAcceleratorEntry entries[] = {
@@ -250,54 +247,8 @@ void InspectionFrame::OnLayout(wxCommandEvent&)
         win->Layout();
 }
 
-void InspectionFrame::SaveLayout()
-{
-    wxConfigBase* cfg = wxConfig::Get();
-    if (!cfg) return;
-
-    cfg->SetPath("/wxInspector/Frame");
-    cfg->Write("X", GetPosition().x);
-    cfg->Write("Y", GetPosition().y);
-    cfg->Write("Width", GetSize().x);
-    cfg->Write("Height", GetSize().y);
-    cfg->Write("Maximized", IsMaximized());
-
-    wxString perspective = m_auiMgr.SavePerspective();
-    cfg->Write("Perspective", perspective);
-    cfg->SetPath("/");
-}
-
-void InspectionFrame::LoadLayout()
-{
-    wxConfigBase* cfg = wxConfig::Get();
-    if (!cfg) return;
-
-    cfg->SetPath("/wxInspector/Frame");
-    long x = cfg->ReadLong("X", -1);
-    long y = cfg->ReadLong("Y", -1);
-    long w = cfg->ReadLong("Width", 800);
-    long h = cfg->ReadLong("Height", 600);
-    bool maximized = cfg->ReadBool("Maximized", false);
-
-    if (x >= 0 && y >= 0)
-        SetSize((int)x, (int)y, (int)w, (int)h);
-    else
-        SetSize((int)w, (int)h);
-
-    if (maximized) Maximize();
-
-    wxString perspective = cfg->Read("Perspective", "");
-    if (!perspective.empty())
-        m_auiMgr.LoadPerspective(perspective);
-
-    cfg->SetPath("/");
-}
-
 void InspectionFrame::OnClose(wxCloseEvent& event)
 {
-    SaveLayout();
-
-    wxCommandEvent evt(wxEVT_INSPECTION_FRAME_CLOSED, GetId());
     evt.SetEventObject(this);
     ProcessWindowEvent(evt);
 
