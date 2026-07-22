@@ -170,4 +170,4 @@ public:
     }
 };
 
-wxIMPLEMENT_APP(SampleApp);
+wxIMPLEMENT_APP_CONSOLE(SampleApp);
