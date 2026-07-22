@@ -6,7 +6,7 @@ Replace the global singleton inspector with per-mixin ownership, enabling inspec
 
 The global singleton inspector (`g_inspectorFrame`) becomes unresponsive when a modal dialog is open because `wxWindowDisabler` disables all other top-level windows and the modal event loop only dispatches to the modal dialog's window hierarchy.
 
-By making each `wxInspectorMixin` instance own its inspector frame, a modal dialog that inherits the mixin gets its own inspector — naturally part of the dialog's window tree — that remains fully interactive during the modal loop.
+By making each `wxInspectable` instance own its inspector frame, a modal dialog that inherits the mixin gets its own inspector — naturally part of the dialog's window tree — that remains fully interactive during the modal loop.
 
 ## Design
 
@@ -15,13 +15,13 @@ By making each `wxInspectorMixin` instance own its inspector frame, a modal dial
 ```
 wxInspector::g_inspectorFrame  (one for the whole app)
 wxInspector::Init() / Show() / Hide()  (static functions)
-wxInspectorMixin  (just sets up Ctrl+Shift+I accelerator)
+wxInspectable  (just sets up Ctrl+Shift+I accelerator)
 ```
 
 ### After (per-mixin ownership)
 
 ```
-wxInspectorMixin::m_inspectorFrame  (one per mixin instance)
+wxInspectable::m_inspectorFrame  (one per mixin instance)
 mixin.ShowInspector() / HideInspector()  (instance methods)
 wxInspector::RegisterPlugin()  (only remaining namespace function)
 ```
@@ -29,10 +29,10 @@ wxInspector::RegisterPlugin()  (only remaining namespace function)
 ## Mixin API
 
 ```cpp
-class wxInspectorMixin {
+class wxInspectable {
 public:
-    wxInspectorMixin();
-    virtual ~wxInspectorMixin();  // now virtual — destroys inspector
+    wxInspectable();
+    virtual ~wxInspectable();  // now virtual — destroys inspector
 
     void ShowInspector(wxObject* selectObj = nullptr);
     void HideInspector();
@@ -69,7 +69,7 @@ private:
 
 **Main app frame:**
 ```cpp
-class MyApp : public wxApp, public wxInspectorMixin {
+class MyApp : public wxApp, public wxInspectable {
     bool OnInit() override {
         SetupInspectorAccelerator(myFrame);
         return true;
@@ -79,9 +79,9 @@ class MyApp : public wxApp, public wxInspectorMixin {
 
 **Modal dialog:**
 ```cpp
-class SettingsDialog : public wxDialog, public wxInspectorMixin {
+class SettingsDialog : public wxDialog, public wxInspectable {
     SettingsDialog(wxWindow* parent)
-        : wxDialog(parent, "Settings"), wxInspectorMixin()
+        : wxDialog(parent, "Settings"), wxInspectable()
     {
         SetupInspectorAccelerator(this);
         // ... create dialog UI ...
@@ -94,7 +94,7 @@ Non-modal child windows don't need their own mixin — the parent frame's inspec
 
 ## How Modal Support Works
 
-When a modal dialog inherits `wxInspectorMixin` and shows its inspector:
+When a modal dialog inherits `wxInspectable` and shows its inspector:
 - `InspectionFrame` is created with the dialog as parent → naturally in the dialog's window tree
 - The modal event loop dispatches to all children of the modal dialog
 - The inspector inherits the parent's event processing — no special workarounds
@@ -107,7 +107,7 @@ When a modal dialog inherits `wxInspectorMixin` and shows its inspector:
 | `ShowInspector()` | Creates `InspectionFrame` lazily if needed, rebuilds tree, shows |
 | `HideInspector()` | Hides the frame (does not destroy) |
 | Close button on inspector | Frame hides (same as today), vetoes close |
-| Parent window/dialog destroyed | `~wxInspectorMixin()` destroys `m_inspectorFrame` |
+| Parent window/dialog destroyed | `~wxInspectable()` destroys `m_inspectorFrame` |
 | Multiple mixin instances | Each owns its independent inspector — no interference |
 
 ## Files Changed
