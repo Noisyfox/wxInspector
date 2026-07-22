@@ -168,6 +168,11 @@ EventLoggerPanel::EventLoggerPanel(wxWindow* parent)
     m_clearBtn->Bind(wxEVT_BUTTON, &EventLoggerPanel::OnClear, this);
 }
 
+EventLoggerPanel::~EventLoggerPanel()
+{
+    StopCapture();
+}
+
 void EventLoggerPanel::ShowObject(InspectableObject& obj)
 {
     StopCapture();

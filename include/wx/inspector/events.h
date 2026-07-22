@@ -22,6 +22,7 @@ struct EventLogEntry {
 class EventLoggerPanel : public wxPanel, public wxEventFilter {
 public:
     EventLoggerPanel(wxWindow* parent);
+    ~EventLoggerPanel();
 
     void ShowObject(InspectableObject& obj);
     void StartCapture();
