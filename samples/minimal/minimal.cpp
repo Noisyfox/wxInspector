@@ -152,22 +152,13 @@ private:
     }
 };
 
-class SampleApp : public wxApp, public wxInspectorMixin {
+class SampleApp : public wxApp, public wxInspectable {
 public:
     bool OnInit() override {
-        if (!wxInspector::Init()) {
-            wxLogError("Failed to initialize wxInspector");
-        }
-
         SampleFrame* frame = new SampleFrame();
 
         // Setup inspector accelerator on the main frame
         SetupInspectorAccelerator(frame);
-
-        frame->Bind(wxEVT_CLOSE_WINDOW, [](wxCloseEvent& event) {
-            event.Skip();
-            wxInspector::Shutdown();
-            });
 
         frame->Show(true);
 

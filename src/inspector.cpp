@@ -1,91 +1,13 @@
 #include "wx/inspector/inspector.h"
 #include "wx/inspector/frame.h"
+#include "wx/inspector/object.h"
 #include "wx/inspector/property_provider.h"
 #include "wx/inspector/method_registry.h"
-#include <wx/config.h>
 #include <wx/accel.h>
+#include <wx/config.h>
 #include <wx/window.h>
 
 namespace wxInspector {
-
-// Singleton state
-static InspectionFrame* g_inspectorFrame = nullptr;
-static wxConfigBase* g_config = nullptr;
-
-bool Init(wxConfigBase* config)
-{
-    if (g_inspectorFrame) return true; // already initialized
-
-    if (config) {
-        g_config = config;
-    } else {
-        g_config = new wxConfig("wxInspector");
-    }
-
-    // Create the frame (hidden by default)
-    int x = -1, y = -1, w = 800, h = 600;
-    if (g_config) {
-        g_config->SetPath("/wxInspector/Frame");
-        x = (int)g_config->ReadLong("X", -1);
-        y = (int)g_config->ReadLong("Y", -1);
-        w = (int)g_config->ReadLong("Width", 800);
-        h = (int)g_config->ReadLong("Height", 600);
-        g_config->SetPath("/");
-    }
-
-    wxPoint pos(x >= 0 ? x : 50, y >= 0 ? y : 50);
-    g_inspectorFrame = new InspectionFrame(
-        nullptr, pos, wxSize(w, h));
-
-    // Handle frame being closed (the frame already hides itself via
-    // OnClose; this handler is a secondary listener for API users)
-    g_inspectorFrame->Bind(wxEVT_INSPECTION_FRAME_CLOSED,
-        [](wxCommandEvent&) {
-            g_inspectorFrame->Hide();
-        });
-
-    return true;
-}
-
-void Show(wxObject* selectObj)
-{
-    if (!g_inspectorFrame) return;
-    g_inspectorFrame->Show(selectObj);
-}
-
-void Hide()
-{
-    if (g_inspectorFrame) {
-        g_inspectorFrame->Hide();
-    }
-}
-
-void RefreshTree()
-{
-    if (g_inspectorFrame) {
-        g_inspectorFrame->RefreshTree();
-    }
-}
-
-void SelectObject(wxObject* obj)
-{
-    if (g_inspectorFrame) {
-        g_inspectorFrame->SelectObject(obj);
-    }
-}
-
-bool IsVisible()
-{
-    return g_inspectorFrame && g_inspectorFrame->IsShown();
-}
-
-void Shutdown()
-{
-    if (g_inspectorFrame) {
-        g_inspectorFrame->Destroy();
-        g_inspectorFrame = nullptr;
-    }
-}
 
 void RegisterPlugin(wxInspectorPlugin* plugin)
 {
@@ -95,35 +17,69 @@ void RegisterPlugin(wxInspectorPlugin* plugin)
 
 } // namespace wxInspector
 
-// --- wxInspectorMixin ---
-
-wxInspectorMixin::wxInspectorMixin()
-    : m_accelWindow(nullptr)
+wxInspectable::wxInspectable()
+    : m_inspectorFrame(nullptr)
+    , m_accelWindow(nullptr)
 {
 }
 
-wxInspectorMixin::~wxInspectorMixin()
+wxInspectable::~wxInspectable()
 {
+    delete m_inspectorFrame;
 }
 
-void wxInspectorMixin::SetupInspectorAccelerator(wxWindow* window)
+void wxInspectable::SetupInspectorAccelerator(wxWindow* window)
 {
     m_accelWindow = window;
+    if (!window)
+        return;
 
-    wxAcceleratorEntry entries[1];
-    entries[0].Set(wxACCEL_CTRL | wxACCEL_SHIFT, 'I', ID_INSPECTOR_TOGGLE);
-    wxAcceleratorTable accel(1, entries);
+    wxAcceleratorEntry entries[] = {
+        { wxACCEL_CTRL | wxACCEL_SHIFT, 'I', ID_INSPECTOR_TOGGLE },
+    };
+    wxAcceleratorTable accel(sizeof(entries) / sizeof(entries[0]), entries);
     window->SetAcceleratorTable(accel);
-
-    window->Bind(wxEVT_MENU, &wxInspectorMixin::OnToggleInspector,
-                 this, ID_INSPECTOR_TOGGLE);
+    window->Bind(wxEVT_MENU, &wxInspectable::OnToggleInspector, this, ID_INSPECTOR_TOGGLE);
 }
 
-void wxInspectorMixin::OnToggleInspector(wxCommandEvent&)
+void wxInspectable::OnToggleInspector(wxCommandEvent&)
 {
-    if (wxInspector::IsVisible()) {
-        wxInspector::Hide();
-    } else {
-        wxInspector::Show();
+    if (IsInspectorVisible())
+        HideInspector();
+    else
+        ShowInspector();
+}
+
+void wxInspectable::ShowInspector(wxObject* selectObj)
+{
+    if (!m_inspectorFrame)
+    {
+        wxWindow* parent = m_accelWindow;
+        m_inspectorFrame = new wxInspector::InspectionFrame(
+            parent, wxDefaultPosition, wxSize(800, 600));
     }
+    m_inspectorFrame->Show(selectObj);
+}
+
+void wxInspectable::HideInspector()
+{
+    if (m_inspectorFrame)
+        m_inspectorFrame->Hide();
+}
+
+bool wxInspectable::IsInspectorVisible() const
+{
+    return m_inspectorFrame && m_inspectorFrame->IsVisible();
+}
+
+void wxInspectable::RefreshInspectorTree()
+{
+    if (m_inspectorFrame)
+        m_inspectorFrame->RefreshTree();
+}
+
+void wxInspectable::SelectInspectorObject(wxObject* obj)
+{
+    if (m_inspectorFrame)
+        m_inspectorFrame->SelectObject(obj);
 }

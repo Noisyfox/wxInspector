@@ -6,31 +6,29 @@
 #include "wx/inspector/plugin.h"
 
 class wxConfigBase;
+class wxCommandEvent;
 
 namespace wxInspector {
 
-// --- Public API ---
+class InspectionFrame;
 
-bool Init(wxConfigBase* config = nullptr);
-void Show(wxObject* selectObj = nullptr);
-void Hide();
-void RefreshTree();
-void SelectObject(wxObject* obj);
-bool IsVisible();
-void Shutdown();
 void RegisterPlugin(wxInspectorPlugin* plugin);
 
 } // namespace wxInspector
 
-// --- wxInspectorMixin ---
-
-class wxInspectorMixin {
+class wxInspectable {
 public:
-    wxInspectorMixin();
-    ~wxInspectorMixin();
+    wxInspectable();
+    virtual ~wxInspectable();
 
-    wxInspectorMixin(const wxInspectorMixin&) = delete;
-    wxInspectorMixin& operator=(const wxInspectorMixin&) = delete;
+    wxInspectable(const wxInspectable&) = delete;
+    wxInspectable& operator=(const wxInspectable&) = delete;
+
+    void ShowInspector(wxObject* selectObj = nullptr);
+    void HideInspector();
+    bool IsInspectorVisible() const;
+    void RefreshInspectorTree();
+    void SelectInspectorObject(wxObject* obj);
 
 protected:
     void SetupInspectorAccelerator(wxWindow* window);
@@ -38,6 +36,8 @@ protected:
 private:
     static const int ID_INSPECTOR_TOGGLE = wxID_HIGHEST + 9999;
     void OnToggleInspector(wxCommandEvent& event);
+
+    wxInspector::InspectionFrame* m_inspectorFrame;
     wxWindow* m_accelWindow;
 };
 
