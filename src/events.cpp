@@ -187,6 +187,7 @@ void EventLoggerPanel::ShowObject(InspectableObject& obj)
 void EventLoggerPanel::PopulateEventTypes(wxClassInfo* classInfo)
 {
     m_eventTypeList->Clear();
+    m_eventTypeToIndex.clear();
     if (!classInfo) return;
 
     size_t count;
@@ -199,6 +200,7 @@ void EventLoggerPanel::PopulateEventTypes(wxClassInfo* classInfo)
             wxString(events[i].name) + wxS(" (") +
             events[i].category + wxS(")"));
         m_eventTypeList->Check(static_cast<unsigned int>(idx));
+        m_eventTypeToIndex[events[i].eventType] = idx;
     }
 
     // Add control-specific extra events
@@ -209,6 +211,7 @@ void EventLoggerPanel::PopulateEventTypes(wxClassInfo* classInfo)
                 wxString(events[i].name) + wxS(" (") +
                 events[i].category + wxS(")"));
             m_eventTypeList->Check(static_cast<unsigned int>(idx));
+            m_eventTypeToIndex[events[i].eventType] = idx;
         }
     }
 }
@@ -274,7 +277,11 @@ int EventLoggerPanel::FilterEvent(wxEvent& event)
     const char* name = nullptr;
     const char* category = nullptr;
     if (FindEventInfo(event.GetEventType(), name, category)) {
-        OnEvent(event, name, category);
+        auto it = m_eventTypeToIndex.find(event.GetEventType());
+        if (it != m_eventTypeToIndex.end() &&
+            m_eventTypeList->IsChecked(static_cast<unsigned int>(it->second))) {
+            OnEvent(event, name, category);
+        }
     }
 
     // Never consume the event — always let it propagate normally.

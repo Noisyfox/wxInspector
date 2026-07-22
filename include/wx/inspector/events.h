@@ -8,6 +8,7 @@
 #include <wx/dataview.h>
 #include <wx/vector.h>
 #include <wx/eventfilter.h>
+#include <map>
 #include "wx/inspector/object.h"
 
 namespace wxInspector {
@@ -55,6 +56,8 @@ private:
     bool m_isCapturing;
 
     wxVector<EventLogEntry> m_entries;
+
+    std::map<int, int> m_eventTypeToIndex;
 
     static const int MAX_ENTRIES = 500;
 };
