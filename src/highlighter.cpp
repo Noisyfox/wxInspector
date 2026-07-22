@@ -88,6 +88,7 @@ void InspectionHighlighter::DrawWindowHighlight(wxWindow* win)
         // by the window system), wxOverlayDC draws through a transparent
         // overlay window that stays on top until m_overlay.Reset().
         wxOverlayDC dc(m_overlay, win);
+        dc.Clear();
         dc.SetPen(wxPen(*wxGREEN, 3));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         wxSize sz = win->GetSize();
@@ -104,6 +105,7 @@ void InspectionHighlighter::DrawSizerHighlight(wxSizer* sizer, wxWindow* relativ
     // already relative to the containing window's client area, so no
     // coordinate conversion is needed.
     wxOverlayDC dc(m_overlay, relativeTo);
+	dc.Clear();
 
     // Green outline for sizer boundary
     dc.SetPen(wxPen(*wxGREEN, 2));
@@ -138,6 +140,7 @@ void InspectionHighlighter::DrawSizerItemHighlight(wxSizerItem* item, wxWindow* 
 
         wxRect rect = item->GetRect();
         wxOverlayDC dc(m_overlay, relativeTo);
+        dc.Clear();
         dc.SetPen(wxPen(*wxGREEN, 2));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawRectangle(rect);
