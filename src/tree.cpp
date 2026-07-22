@@ -77,7 +77,7 @@ InspectionTree::InspectionTree(wxWindow* parent)
         wxWindow* win = wxFindWindowAtPointer(pt);
         if (win) SelectObject(win);
         else wxBell();
-    }, wxID_ANY, wxID_ANY, this);
+    }, wxID_ANY, wxID_ANY);
 
     RebuildTree();
 }
