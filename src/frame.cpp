@@ -14,8 +14,6 @@
 
 namespace wxInspector {
 
-wxDEFINE_EVENT(wxEVT_INSPECTION_FRAME_CLOSED, wxCommandEvent);
-
 enum {
     ID_HIGHLIGHT = wxID_HIGHEST + 400,
     ID_FIND_WIDGET,
@@ -249,9 +247,6 @@ void InspectionFrame::OnLayout(wxCommandEvent&)
 
 void InspectionFrame::OnClose(wxCloseEvent& event)
 {
-    evt.SetEventObject(this);
-    ProcessWindowEvent(evt);
-
     // Hide instead of destroying — the inspector is a persistent singleton
     // that can be reshown via Show(). Use Hide() rather than Show(false)
     // because InspectionFrame::Show(wxObject*,bool) hides wxWindow::Show(bool),

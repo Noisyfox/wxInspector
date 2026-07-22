@@ -13,8 +13,6 @@ class MethodInvokerPanel;
 class EventLoggerPanel;
 class InspectionHighlighter;
 
-wxDECLARE_EVENT(wxEVT_INSPECTION_FRAME_CLOSED, wxCommandEvent);
-
 class InspectionFrame : public wxFrame {
 public:
     InspectionFrame(wxWindow* parent, wxPoint pos = wxDefaultPosition,
