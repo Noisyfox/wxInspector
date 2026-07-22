@@ -9,6 +9,7 @@
 namespace wxInspector {
 
 wxDECLARE_EVENT(wxEVT_INSPECT_TREE_SEL_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(wxEVT_INSPECT_TREE_HIGHLIGHT, wxCommandEvent);
 
 class InspectionTree : public wxPanel {
 public:
@@ -33,6 +34,7 @@ private:
     void OnExpandAll(wxCommandEvent& event);
     void OnCollapseAll(wxCommandEvent& event);
     void OnFindWidget(wxCommandEvent& event);
+    void OnHighlight(wxCommandEvent& event);
     void OnKeyDown(wxKeyEvent& event);
     void OnContextMenu(wxTreeEvent& event);
     void OnLayout(wxCommandEvent& event);

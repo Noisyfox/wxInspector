@@ -8,6 +8,7 @@
 namespace wxInspector {
 
 wxDEFINE_EVENT(wxEVT_INSPECT_TREE_SEL_CHANGED, wxCommandEvent);
+wxDEFINE_EVENT(wxEVT_INSPECT_TREE_HIGHLIGHT, wxCommandEvent);
 
 // TreeItemData subclass to store the wxObject* properly
 class ObjectTreeItemData : public wxTreeItemData {
@@ -25,6 +26,7 @@ enum {
     ID_TREE_EXPAND_ALL,
     ID_TREE_COLLAPSE_ALL,
     ID_TREE_FIND_WIDGET,
+    ID_TREE_HIGHLIGHT,
     ID_TREE_LAYOUT,
     ID_TREE_LAYOUT_PARENT
 };
@@ -52,6 +54,8 @@ InspectionTree::InspectionTree(wxWindow* parent)
         wxArtProvider::GetBitmap(wxART_MINUS), "Collapse All (F5)");
     m_toolbar->AddTool(ID_TREE_FIND_WIDGET, "Find",
         wxArtProvider::GetBitmap(wxART_CROSS_MARK), "Find Widget (F2)");
+    m_toolbar->AddTool(ID_TREE_HIGHLIGHT, "Highlight",
+        wxArtProvider::GetBitmap(wxART_TIP), "Highlight (F6)");
     m_toolbar->Realize();
     mainSizer->Add(m_toolbar, 0, wxEXPAND);
 
@@ -67,6 +71,7 @@ InspectionTree::InspectionTree(wxWindow* parent)
     Bind(wxEVT_TOOL, &InspectionTree::OnExpandAll, this, ID_TREE_EXPAND_ALL);
     Bind(wxEVT_TOOL, &InspectionTree::OnCollapseAll, this, ID_TREE_COLLAPSE_ALL);
     Bind(wxEVT_TOOL, &InspectionTree::OnFindWidget, this, ID_TREE_FIND_WIDGET);
+    Bind(wxEVT_TOOL, &InspectionTree::OnHighlight, this, ID_TREE_HIGHLIGHT);
     Bind(wxEVT_MENU, &InspectionTree::OnLayout, this, ID_TREE_LAYOUT);
     Bind(wxEVT_MENU, &InspectionTree::OnLayoutParent, this, ID_TREE_LAYOUT_PARENT);
     m_tree->Bind(wxEVT_KEY_DOWN, &InspectionTree::OnKeyDown, this);
@@ -342,6 +347,12 @@ void InspectionTree::OnToggleSizers(wxCommandEvent&) { ToggleSizers(); }
 void InspectionTree::OnExpandAll(wxCommandEvent&) { ExpandAll(); }
 void InspectionTree::OnCollapseAll(wxCommandEvent&) { CollapseAll(); }
 void InspectionTree::OnFindWidget(wxCommandEvent&) { FindWidget(); }
+void InspectionTree::OnHighlight(wxCommandEvent&)
+{
+    wxCommandEvent evt(wxEVT_INSPECT_TREE_HIGHLIGHT, GetId());
+    evt.SetEventObject(this);
+    ProcessWindowEvent(evt);
+}
 
 void InspectionTree::OnKeyDown(wxKeyEvent& event)
 {
@@ -351,6 +362,12 @@ void InspectionTree::OnKeyDown(wxKeyEvent& event)
     case WXK_F3: ToggleSizers(); return;
     case WXK_F4: ExpandAll(); return;
     case WXK_F5: CollapseAll(); return;
+    case WXK_F6: {
+        wxCommandEvent evt(wxEVT_INSPECT_TREE_HIGHLIGHT, GetId());
+        evt.SetEventObject(this);
+        ProcessWindowEvent(evt);
+        return;
+    }
     default: break;
     }
     event.Skip();

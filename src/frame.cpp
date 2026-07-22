@@ -34,6 +34,8 @@ wxBEGIN_EVENT_TABLE(InspectionFrame, wxFrame)
     EVT_CLOSE(InspectionFrame::OnClose)
     EVT_COMMAND(wxID_ANY, wxEVT_INSPECT_TREE_SEL_CHANGED,
                 InspectionFrame::OnTreeSelectionChanged)
+    EVT_COMMAND(wxID_ANY, wxEVT_INSPECT_TREE_HIGHLIGHT,
+                InspectionFrame::OnHighlight)
 wxEND_EVENT_TABLE()
 
 InspectionFrame::InspectionFrame(wxWindow* parent, wxPoint pos, wxSize size)
