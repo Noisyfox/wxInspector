@@ -1,5 +1,4 @@
 #include <wx/wx.h>
-#include <wx/inspector/inspector.h>
 #include <wx/panel.h>
 #include <wx/button.h>
 #include <wx/textctrl.h>
@@ -15,6 +14,9 @@
 #include <wx/sizer.h>
 #include <wx/menu.h>
 #include <wx/aboutdlg.h>
+
+//#define WXINSPECTOR_DISABLE
+#include <wx/inspector/inspector.h>
 
 // Modal dialog with its own inspector — demonstrates that the inspector
 // works during modal loops because the inspector frame is a child of the dialog.
