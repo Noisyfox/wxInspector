@@ -79,6 +79,14 @@ bool IsVisible()
     return g_inspectorFrame && g_inspectorFrame->IsShown();
 }
 
+void Shutdown()
+{
+    if (g_inspectorFrame) {
+        g_inspectorFrame->Destroy();
+        g_inspectorFrame = nullptr;
+    }
+}
+
 void RegisterPlugin(wxInspectorPlugin* plugin)
 {
     PropertyProvider::Get().RegisterPlugin(plugin);

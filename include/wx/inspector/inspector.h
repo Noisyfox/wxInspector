@@ -17,6 +17,7 @@ void Hide();
 void RefreshTree();
 void SelectObject(wxObject* obj);
 bool IsVisible();
+void Shutdown();
 void RegisterPlugin(wxInspectorPlugin* plugin);
 
 } // namespace wxInspector

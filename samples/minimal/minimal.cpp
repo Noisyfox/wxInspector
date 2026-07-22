@@ -164,6 +164,11 @@ public:
         // Setup inspector accelerator on the main frame
         SetupInspectorAccelerator(frame);
 
+        frame->Bind(wxEVT_CLOSE_WINDOW, [](wxCloseEvent& event) {
+            event.Skip();
+            wxInspector::Shutdown();
+            });
+
         frame->Show(true);
 
         return true;
