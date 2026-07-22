@@ -117,7 +117,7 @@ void InspectionFrame::SetupMenuBar()
     Bind(wxEVT_MENU, &InspectionFrame::OnFindWidget, this, ID_FIND_WIDGET);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) {
         wxMessageBox(
-            "wxInspector — Widget Inspection Tool\n"
+            wxString::FromUTF8("wxInspector — Widget Inspection Tool\n") +
             "Ported from wxPython wx.lib.inspection\n\n"
             "Ctrl+Shift+I to toggle",
             "About wxInspector", wxOK | wxICON_INFORMATION, this);

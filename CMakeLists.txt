@@ -1,6 +1,13 @@
 cmake_minimum_required(VERSION 3.16)
 project(wxInspector VERSION 0.1.0 LANGUAGES CXX)
 
+if(WIN32)
+    if(MSVC)
+        # Force the source code encoding to UTF-8.
+        add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+        add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+    endif(MSVC)
+endif(WIN32)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 

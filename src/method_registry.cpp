@@ -132,7 +132,7 @@ public:
                     (int)r, (int)g, (int)b);
             }});
         methods.push_back({"SetFont", "SetFont(size,face)",
-            "Set font — size in points, optional face name",
+            wxString::FromUTF8("Set font — size in points, optional face name"),
             [win](const wxVector<wxString>& args) -> wxString {
                 if (args.size() < 1)
                     return "Error: expected at least 1 argument (size)";
@@ -172,7 +172,7 @@ public:
                 return "Fit done";
             }});
         methods.push_back({"SetSizerAndFit", "SetSizerAndFit(sizer)",
-            "Set sizer and fit — pass sizer pointer address",
+            wxString::FromUTF8("Set sizer and fit — pass sizer pointer address"),
             [win](const wxVector<wxString>& args) -> wxString {
                 // Fit the existing sizer
                 win->Fit();

@@ -110,7 +110,7 @@ void MethodInvokerPanel::UpdateMethodList(InspectableObject& obj)
 
     m_currentMethods = MethodRegistry::Get().GetMethods(obj);
     for (auto& m : m_currentMethods) {
-        wxString label = m.name + " — " + m.signature;
+        wxString label = m.name + wxString::FromUTF8(" — ") + m.signature;
         m_methodChoice->Append(label);
     }
 
