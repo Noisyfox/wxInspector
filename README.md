@@ -25,7 +25,7 @@ Ported from [wxPython's `wx.lib.inspection`](https://github.com/wxWidgets/Phoeni
 ```cpp
 #include <wx/inspector/inspector.h>
 
-class MyApp : public wxApp, public wxInspectable {
+class MyApp : public wxApp, public wxInspector::wxInspectable {
     bool OnInit() override {
         SetupInspectorAccelerator(myFrame);
         // ... create your UI ...
@@ -39,9 +39,9 @@ wxIMPLEMENT_APP(MyApp);
 For modal dialogs, use the same mixin pattern:
 
 ```cpp
-class SettingsDialog : public wxDialog, public wxInspectable {
+class SettingsDialog : public wxDialog, public wxInspector::wxInspectable {
     SettingsDialog(wxWindow* parent)
-        : wxDialog(parent, "Settings"), wxInspectable()
+        : wxDialog(parent, "Settings"), wxInspector::wxInspectable()
     {
         SetupInspectorAccelerator(this);
         // ... create dialog UI ...

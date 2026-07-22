@@ -156,7 +156,7 @@ Using `wxConfig` (default: `wxInspector` key in system config):
 ```cpp
 #include <wx/inspector/inspector.h>
 
-class MyApp : public wxApp, public wxInspectable {
+class MyApp : public wxApp, public wxInspector::wxInspectable {
     bool OnInit() override {
         SetupInspectorAccelerator(myFrame);
         // ... create windows, etc. ...
@@ -168,10 +168,10 @@ class MyApp : public wxApp, public wxInspectable {
 
 ### wxInspectable
 
-The `wxInspectable` mixin class provides per-instance inspector management. Each inspectable window or dialog owns its lifecycle, replacing the old global `wxInspector` namespace API with per-mixin methods.
+The `wxInspector::wxInspectable` mixin class provides per-instance inspector management. Each inspectable window or dialog owns its lifecycle, replacing the old global `wxInspector` namespace API with per-mixin methods.
 
 ```cpp
-class MyApp : public wxApp, public wxInspectable {
+class MyApp : public wxApp, public wxInspector::wxInspectable {
     bool OnInit() override {
         SetupInspectorAccelerator(myFrame);  // bind Ctrl+Shift+I to the frame
         return true;
@@ -182,9 +182,9 @@ class MyApp : public wxApp, public wxInspectable {
 For dialogs:
 
 ```cpp
-class SettingsDialog : public wxDialog, public wxInspectable {
+class SettingsDialog : public wxDialog, public wxInspector::wxInspectable {
     SettingsDialog(wxWindow* parent)
-        : wxDialog(parent, "Settings"), wxInspectable()
+        : wxDialog(parent, "Settings"), wxInspector::wxInspectable()
     {
         SetupInspectorAccelerator(this);
         // ... create dialog UI ...
@@ -235,7 +235,7 @@ wxInspector::RegisterPlugin(wxInspectorPlugin* plugin);
 ```
 wxInspector/
 ├── include/wx/inspector/
-│   ├── inspector.h          -- Public API + wxInspectable mixin
+│   ├── inspector.h          -- Public API + wxInspector::wxInspectable mixin
 │   ├── frame.h              -- InspectionFrame (AUI layout, toolbar)
 │   ├── tree.h               -- InspectionTree (widget/sizer hierarchy)
 │   ├── info.h               -- ObjectInfo panel (wxPropertyGrid)
@@ -283,7 +283,7 @@ wxInspector/
 | Feature | Reason |
 |---|---|
 | PyCrust interactive shell | Requires a Python interpreter — impossible in C++ |
-| `wx.lib.mixins.inspection` as a standalone Python mixin | Replaced by `wxInspectable` C++ class |
+| `wx.lib.mixins.inspection` as a standalone Python mixin | Replaced by `wxInspector::wxInspectable` C++ class |
 | `wx.lib.eventwatcher` as a standalone module | Integrated into the Event Logger panel |
 | `PyEmbeddedImage` icons | Replaced with XPM-in-header or platform-native equivalents |
 | `wx.py.editwindow` styles | PropertyGrid replaces StyledTextCtrl for info display |

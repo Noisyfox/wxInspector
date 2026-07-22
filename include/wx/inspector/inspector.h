@@ -25,8 +25,6 @@ class InspectionFrame;
     }
 #endif
 
-} // namespace wxInspector
-
 // --- Mixin (real implementation, always in library) ---
 
 #ifndef WXINSPECTOR_DISABLE
@@ -71,5 +69,7 @@ protected:
 #else
 using wxInspectable = wxInspectableImpl;
 #endif
+
+} // namespace wxInspector
 
 #endif // WX_INSPECTOR_INSPECTOR_H

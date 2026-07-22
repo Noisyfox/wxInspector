@@ -18,8 +18,6 @@ void detail::RegisterPluginImpl(wxInspectorPlugin* plugin)
     MethodRegistry::Get().RegisterPlugin(plugin);
 }
 
-} // namespace wxInspector
-
 wxInspectableImpl::wxInspectableImpl()
     : m_inspectorFrame(nullptr)
     , m_accelWindow(nullptr)
@@ -81,5 +79,7 @@ void wxInspectableImpl::SelectInspectorObject(wxObject* obj)
     if (m_inspectorFrame)
         m_inspectorFrame->SelectObject(obj);
 }
+
+} // namespace wxInspector
 
 #endif // WXINSPECTOR_DISABLE

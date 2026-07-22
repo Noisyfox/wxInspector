@@ -18,7 +18,7 @@
 
 // Modal dialog with its own inspector — demonstrates that the inspector
 // works during modal loops because the inspector frame is a child of the dialog.
-class SettingsDialog : public wxDialog, public wxInspectable {
+class SettingsDialog : public wxDialog, public wxInspector::wxInspectable {
 public:
     SettingsDialog(wxWindow* parent)
         : wxDialog(parent, wxID_ANY, "Settings",
@@ -218,7 +218,7 @@ private:
     }
 };
 
-class SampleApp : public wxApp, public wxInspectable {
+class SampleApp : public wxApp, public wxInspector::wxInspectable {
 public:
     bool OnInit() override {
         SampleFrame* frame = new SampleFrame();
