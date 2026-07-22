@@ -5,6 +5,8 @@ of all live widgets and sizers, equivalent to browser DevTools for native GUI ap
 
 Ported from [wxPython's `wx.lib.inspection`](https://github.com/wxWidgets/Phoenix).
 
+![wxInspector Screenshot](docs/sample.png)
+
 ## Features
 
 - **Widget Tree** — hierarchical view of all live windows and sizers
