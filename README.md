@@ -25,15 +25,28 @@ Ported from [wxPython's `wx.lib.inspection`](https://github.com/wxWidgets/Phoeni
 ```cpp
 #include <wx/inspector/inspector.h>
 
-class MyApp : public wxApp, public wxInspectorMixin {
+class MyApp : public wxApp, public wxInspectable {
     bool OnInit() override {
-        wxInspector::Init();
+        SetupInspectorAccelerator(myFrame);
         // ... create your UI ...
-        wxInspector::Show();  // or press Ctrl+Shift+I
+        ShowInspector();  // optional, or press Ctrl+Shift+I
         return true;
     }
 };
 wxIMPLEMENT_APP(MyApp);
+```
+
+For modal dialogs, use the same mixin pattern:
+
+```cpp
+class SettingsDialog : public wxDialog, public wxInspectable {
+    SettingsDialog(wxWindow* parent)
+        : wxDialog(parent, "Settings"), wxInspectable()
+    {
+        SetupInspectorAccelerator(this);
+        // ... create dialog UI ...
+    }
+};
 ```
 
 ## Building

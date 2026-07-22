@@ -156,33 +156,50 @@ Using `wxConfig` (default: `wxInspector` key in system config):
 ```cpp
 #include <wx/inspector/inspector.h>
 
-// In wxApp::OnInit():
-wxInspector::Init();
-// ... create windows, etc. ...
-wxInspector::Show();  // or user presses Ctrl+Shift+I
-```
-
-### Mixin Class
-
-```cpp
-class MyApp : public wxApp, public wxInspectorMixin {
+class MyApp : public wxApp, public wxInspectable {
     bool OnInit() override {
-        // wxInspectorMixin auto-registers Ctrl+Shift+I accelerator
-        wxInspector::Init();
+        SetupInspectorAccelerator(myFrame);
+        // ... create windows, etc. ...
+        ShowInspector();  // optional, or user presses Ctrl+Shift+I
         return true;
     }
 };
 ```
 
-### Programmatic API
+### wxInspectable
+
+The `wxInspectable` mixin class provides per-instance inspector management. Each inspectable window or dialog owns its lifecycle, replacing the old global `wxInspector` namespace API with per-mixin methods.
 
 ```cpp
-wxInspector::Init(wxPoint defaultPos, wxSize defaultSize, wxConfig* config);
-wxInspector::Show(wxObject* selectObj = nullptr, bool refreshTree = false);
-wxInspector::Hide();
-wxInspector::RefreshTree();
-wxInspector::SelectObject(wxObject* obj);
-wxInspector::IsVisible();
+class MyApp : public wxApp, public wxInspectable {
+    bool OnInit() override {
+        SetupInspectorAccelerator(myFrame);  // bind Ctrl+Shift+I to the frame
+        return true;
+    }
+};
+```
+
+For dialogs:
+
+```cpp
+class SettingsDialog : public wxDialog, public wxInspectable {
+    SettingsDialog(wxWindow* parent)
+        : wxDialog(parent, "Settings"), wxInspectable()
+    {
+        SetupInspectorAccelerator(this);
+        // ... create dialog UI ...
+    }
+};
+```
+
+### Programmatic API (mixin methods)
+
+```cpp
+void ShowInspector(wxObject* selectObj = nullptr);
+void HideInspector();
+bool IsInspectorVisible() const;
+void RefreshInspectorTree();
+void SelectInspectorObject(wxObject* obj);
 ```
 
 ---
@@ -218,7 +235,7 @@ wxInspector::RegisterPlugin(wxInspectorPlugin* plugin);
 ```
 wxInspector/
 ├── include/wx/inspector/
-│   ├── inspector.h          -- Public API + wxInspectorMixin
+│   ├── inspector.h          -- Public API + wxInspectable mixin
 │   ├── frame.h              -- InspectionFrame (AUI layout, toolbar)
 │   ├── tree.h               -- InspectionTree (widget/sizer hierarchy)
 │   ├── info.h               -- ObjectInfo panel (wxPropertyGrid)
@@ -266,7 +283,7 @@ wxInspector/
 | Feature | Reason |
 |---|---|
 | PyCrust interactive shell | Requires a Python interpreter — impossible in C++ |
-| `wx.lib.mixins.inspection` as a standalone Python mixin | Replaced by `wxInspectorMixin` C++ class |
+| `wx.lib.mixins.inspection` as a standalone Python mixin | Replaced by `wxInspectable` C++ class |
 | `wx.lib.eventwatcher` as a standalone module | Integrated into the Event Logger panel |
 | `PyEmbeddedImage` icons | Replaced with XPM-in-header or platform-native equivalents |
 | `wx.py.editwindow` styles | PropertyGrid replaces StyledTextCtrl for info display |
