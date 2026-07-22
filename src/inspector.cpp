@@ -23,10 +23,6 @@ wxInspectable::wxInspectable()
 {
 }
 
-wxInspectable::~wxInspectable()
-{
-}
-
 void wxInspectable::SetupInspectorAccelerator(wxWindow* window)
 {
     m_accelWindow = window;

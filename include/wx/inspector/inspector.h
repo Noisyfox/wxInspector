@@ -19,7 +19,6 @@ void RegisterPlugin(wxInspectorPlugin* plugin);
 class wxInspectable {
 public:
     wxInspectable();
-    virtual ~wxInspectable();
 
     wxInspectable(const wxInspectable&) = delete;
     wxInspectable& operator=(const wxInspectable&) = delete;
