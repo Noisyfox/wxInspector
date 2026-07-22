@@ -12,7 +12,8 @@ enum {
     ID_METHOD_CHOICE = wxID_HIGHEST + 200,
     ID_PARAM_FIELD,
     ID_INVOKE_BTN,
-    ID_RESULT_AREA
+    ID_RESULT_AREA,
+    ID_HISTORY_LIST
 };
 
 MethodInvokerPanel::MethodInvokerPanel(wxWindow* parent)
@@ -51,11 +52,20 @@ MethodInvokerPanel::MethodInvokerPanel(wxWindow* parent)
     resultSizer->Add(m_resultArea, 1, wxEXPAND);
     mainSizer->Add(resultSizer, 1, wxEXPAND | wxALL, 4);
 
+    // History
+    wxStaticBox* histBox = new wxStaticBox(this, wxID_ANY, "History");
+    wxStaticBoxSizer* histSizer = new wxStaticBoxSizer(histBox, wxVERTICAL);
+    m_historyList = new wxListBox(this, ID_HISTORY_LIST);
+    m_historyList->SetMinSize(wxSize(-1, 60));
+    histSizer->Add(m_historyList, 1, wxEXPAND);
+    mainSizer->Add(histSizer, 0, wxEXPAND | wxALL, 4);
+
     SetSizer(mainSizer);
 
     m_methodChoice->Bind(wxEVT_CHOICE, &MethodInvokerPanel::OnMethodSelected, this);
     m_invokeBtn->Bind(wxEVT_BUTTON, &MethodInvokerPanel::OnInvoke, this);
     m_paramField->Bind(wxEVT_TEXT_ENTER, &MethodInvokerPanel::OnInvoke, this);
+    m_historyList->Bind(wxEVT_LISTBOX, &MethodInvokerPanel::OnHistorySelect, this);
 }
 
 void MethodInvokerPanel::ShowObject(InspectableObject& obj)
@@ -126,6 +136,28 @@ void MethodInvokerPanel::OnInvoke(wxCommandEvent&)
     }
 
     m_resultArea->SetValue(result);
+
+    // Add to history (in-memory only)
+    wxString histEntry = method.name + "(" + argStr + ") -> " + result;
+    m_history.push_back(histEntry);
+    if (m_history.size() > MAX_HISTORY)
+        m_history.erase(m_history.begin());
+
+    m_historyList->Clear();
+    for (auto it = m_history.rbegin(); it != m_history.rend(); ++it)
+        m_historyList->Append(*it);
+}
+
+void MethodInvokerPanel::OnHistorySelect(wxCommandEvent& event)
+{
+    int sel = event.GetSelection();
+    if (sel >= 0 && sel < (int)m_history.size()) {
+        // History is stored in reverse order
+        int actualIdx = (int)m_history.size() - 1 - sel;
+        if (actualIdx >= 0) {
+            m_resultArea->SetValue(m_history[actualIdx]);
+        }
+    }
 }
 
 } // namespace wxInspector

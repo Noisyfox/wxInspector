@@ -5,6 +5,7 @@
 #include <wx/choice.h>
 #include <wx/textctrl.h>
 #include <wx/button.h>
+#include <wx/listbox.h>
 #include "wx/inspector/object.h"
 #include "wx/inspector/plugin.h"
 
@@ -20,6 +21,7 @@ public:
 private:
     void OnMethodSelected(wxCommandEvent& event);
     void OnInvoke(wxCommandEvent& event);
+    void OnHistorySelect(wxCommandEvent& event);
 
     void UpdateMethodList(InspectableObject& obj);
 
@@ -27,9 +29,13 @@ private:
     wxTextCtrl* m_paramField;
     wxButton* m_invokeBtn;
     wxTextCtrl* m_resultArea;
+    wxListBox* m_historyList;
 
     wxVector<MethodInfo> m_currentMethods;
+    wxVector<wxString> m_history;
     InspectableObject m_currentObj;
+
+    static const int MAX_HISTORY = 20;
 };
 
 } // namespace wxInspector
