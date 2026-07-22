@@ -51,10 +51,19 @@ public:
             wxString::Format("(%d, %d)", win->GetRect().x, win->GetRect().y),
             true, {}, [win]() { wxRect r = win->GetRect();
                 return wxString::Format("(%d, %d)", r.x, r.y); }, nullptr});
-        props.push_back({"Size", "Geometry", PropertyType::ReadOnly,
-            wxString::Format("(%d, %d)", win->GetSize().x, win->GetSize().y),
-            true, {}, [win]() { wxSize s = win->GetSize();
-                return wxString::Format("(%d, %d)", s.x, s.y); }, nullptr});
+        props.push_back({"Size", "Geometry", PropertyType::String,
+            wxString::Format("(%d,%d)", win->GetSize().x, win->GetSize().y),
+            false, {},
+            [win]() { wxSize s = win->GetSize();
+                return wxString::Format("(%d,%d)", s.x, s.y); },
+            [win](const wxString& val) {
+                long w = -1, h = -1;
+                if (sscanf(val.c_str(), "(%ld,%ld)", &w, &h) == 2 ||
+                    sscanf(val.c_str(), "%ld,%ld", &w, &h) == 2) {
+                    win->SetSize(wxSize(w, h)); return true;
+                }
+                return false;
+            }});
         props.push_back({"MinSize", "Geometry", PropertyType::String,
             wxString::Format("(%d,%d)", win->GetMinSize().x, win->GetMinSize().y),
             false, {},
@@ -65,6 +74,19 @@ public:
                 if (sscanf(val.c_str(), "(%ld,%ld)", &w, &h) == 2 ||
                     sscanf(val.c_str(), "%ld,%ld", &w, &h) == 2) {
                     win->SetMinSize(wxSize(w, h)); return true;
+                }
+                return false;
+            }});
+        props.push_back({"MaxSize", "Geometry", PropertyType::String,
+            wxString::Format("(%d,%d)", win->GetMaxSize().x, win->GetMaxSize().y),
+            false, {},
+            [win]() { wxSize s = win->GetMaxSize();
+                return wxString::Format("(%d,%d)", s.x, s.y); },
+            [win](const wxString& val) {
+                long w = -1, h = -1;
+                if (sscanf(val.c_str(), "(%ld,%ld)", &w, &h) == 2 ||
+                    sscanf(val.c_str(), "%ld,%ld", &w, &h) == 2) {
+                    win->SetMaxSize(wxSize(w, h)); return true;
                 }
                 return false;
             }});
