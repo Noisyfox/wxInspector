@@ -145,9 +145,19 @@ void InspectionHighlighter::DrawSizerItemHighlight(wxSizerItem* item, wxWindow* 
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawRectangle(rect);
         // wxOverlayDC destructor commits the overlay
+    } else if (item->IsSizer()) {
+        // Highlight the sizer item's own rectangle, and let the child
+        // sizer's contents be drawn as part of the parent sizer highlight
+        // (drawn in DrawSizerHighlight) when the sizer itself is selected.
+        if (!relativeTo) return;
+
+        wxRect rect = item->GetRect();
+        wxOverlayDC dc(m_overlay, relativeTo);
+        dc.Clear();
+        dc.SetPen(wxPen(*wxGREEN, 2));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.DrawRectangle(rect);
     }
-    // Sizer-type items: the child sizer's children are drawn as part
-    // of the parent sizer highlight (drawn in DrawSizerHighlight)
 }
 
 void InspectionHighlighter::OnTimer(wxTimerEvent&)
