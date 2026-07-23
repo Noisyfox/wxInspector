@@ -55,3 +55,35 @@ target_link_libraries(wxInspector PUBLIC ${wxWidgets_LIBRARIES})
 
 # Samples
 add_subdirectory(samples/minimal)
+
+# ---- Install rules ----
+include(GNUInstallDirs)
+
+# Install the library target
+install(TARGETS wxInspector
+    EXPORT wxInspectorTargets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+# Install public headers (preserving the wx/inspector/ directory structure)
+install(DIRECTORY include/wx
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+# Generate and install CMake package config
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/wxInspectorConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/wxInspectorConfig.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/wxInspector
+)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/wxInspectorConfig.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/wxInspector
+)
+install(EXPORT wxInspectorTargets
+    NAMESPACE wxInspector::
+    FILE wxInspectorTargets.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/wxInspector
+)
