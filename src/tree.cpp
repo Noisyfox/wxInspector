@@ -34,6 +34,32 @@ wxWindow* wxInspectorFindWxWindowByGtkWidget(wxWindow* win, GtkWidget* target)
     return nullptr;
 }
 
+// Find the deepest wxWindow child at the given (x,y) coordinates relative
+// to the parent window. Returns the child itself if no deeper child matches.
+wxWindow* wxInspectorFindDeepestChildAt(wxWindow* parent, int x, int y)
+{
+    // Search children in reverse order — last child is topmost on screen
+    const wxWindowList& children = parent->GetChildren();
+    for (int i = children.GetCount() - 1; i >= 0; i--)
+    {
+        wxWindow* child = children[i];
+        if (!child->IsShown()) continue;
+
+        wxPoint pos = child->GetPosition();
+        wxSize  sz  = child->GetSize();
+
+        if (x >= pos.x && y >= pos.y &&
+            x < pos.x + sz.x && y < pos.y + sz.y)
+        {
+            // Convert to child-local coordinates and recurse
+            wxWindow* deeper = wxInspectorFindDeepestChildAt(
+                child, x - pos.x, y - pos.y);
+            return deeper ? deeper : child;
+        }
+    }
+    return nullptr;
+}
+
 void wxInspectorGdkEventHandler(GdkEvent* gdkEvent, gpointer data)
 {
     wxInspector::InspectionTree* tree =
@@ -42,37 +68,75 @@ void wxInspectorGdkEventHandler(GdkEvent* gdkEvent, gpointer data)
     if (gdkEvent->type == GDK_BUTTON_PRESS && tree->IsFindWidgetCapture())
     {
         GdkWindow* gdkWin = gdkEvent->button.window;
-        wxWindow* foundWin = nullptr;
+        wxWindow* baseWin = nullptr;
+        GtkWidget* eventWidget = nullptr;
 
         if (gdkWin)
         {
             // Get the GtkWidget associated with the clicked GdkWindow
             gpointer userData = nullptr;
             gdk_window_get_user_data(gdkWin, &userData);
-            GtkWidget* gtkWidget = GTK_WIDGET(userData);
+            eventWidget = GTK_WIDGET(userData);
 
             // Walk up the GtkWidget parent chain. For composite controls
             // (wxComboBox, etc.), the click lands on an internal child
-            // (e.g. the toggle button), so we walk up to find the
-            // ancestor GtkWidget whose wxWindow is in the inspection tree.
-            while (gtkWidget && !foundWin)
+            // (e.g. the toggle button), so we walk up to find the ancestor
+            // GtkWidget corresponding to a wxWindow.
+            GtkWidget* gtkWidget = eventWidget;
+            while (gtkWidget && !baseWin)
             {
-                // Search all top-level windows and their children for a
-                // wxWindow wrapping this GtkWidget
                 for (wxWindowList::iterator it = wxTopLevelWindows.begin();
                      it != wxTopLevelWindows.end(); ++it)
                 {
-                    foundWin = wxInspectorFindWxWindowByGtkWidget(*it, gtkWidget);
-                    if (foundWin) break;
+                    baseWin = wxInspectorFindWxWindowByGtkWidget(*it, gtkWidget);
+                    if (baseWin) break;
                 }
                 gtkWidget = gtk_widget_get_parent(gtkWidget);
             }
         }
 
-        if (foundWin)
-            tree->SelectObject(foundWin);
+        if (baseWin)
+        {
+            // baseWin is the lowest clickable wxWindow ancestor.  Now walk
+            // back DOWN the wxWindow tree to find the deepest child at the
+            // click position.  This is needed for controls like wxStaticText
+            // that don't have their own GdkWindow and draw on their parent's
+            // surface — they won't be found by the GtkWidget walk alone.
+            wxWindow* deepest = nullptr;
+
+            if (eventWidget)
+            {
+                // Translate event coordinates from the event's GtkWidget
+                // space to the base wxWindow's GtkWidget space, avoiding
+                // any screen-coordinate dependency.
+                GtkWidget* baseWidget = GTK_WIDGET(baseWin->GetHandle());
+                gint outX = (gint)gdkEvent->button.x;
+                gint outY = (gint)gdkEvent->button.y;
+
+                bool coordsValid = (eventWidget == baseWidget);
+                if (!coordsValid)
+                {
+                    coordsValid = gtk_widget_translate_coordinates(
+                        eventWidget, baseWidget,
+                        (gint)gdkEvent->button.x, (gint)gdkEvent->button.y,
+                        &outX, &outY);
+                }
+
+                if (coordsValid)
+                {
+                    deepest = wxInspectorFindDeepestChildAt(
+                        baseWin, (int)outX, (int)outY);
+                }
+            }
+
+            if (deepest)
+                tree->SelectObject(deepest);
+            else
+                tree->SelectObject(baseWin);
+        }
         else
             wxBell();
+
         tree->EndFindWidget();
         return; // Swallow event so GTK native widgets don't process it
     }
