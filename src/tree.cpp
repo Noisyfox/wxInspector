@@ -5,6 +5,85 @@
 #include <wx/utils.h>
 #include <wx/menu.h>
 
+#ifdef __WXGTK3__
+#include <gdk/gdk.h>
+#include <gtk/gtk.h>
+
+namespace {
+
+// Wrapper that adapts gtk_main_do_event (which takes only GdkEvent*) to
+// GdkEventFunc (which takes GdkEvent* + gpointer).
+void wxInspectorGtkMainDoEvent(GdkEvent* event, gpointer /* data */)
+{
+    gtk_main_do_event(event);
+}
+
+// Recursively search the wxWindow tree for a window whose GTK handle
+// matches the given GtkWidget. Returns nullptr if no match found.
+wxWindow* wxInspectorFindWxWindowByGtkWidget(wxWindow* win, GtkWidget* target)
+{
+    if (win->GetHandle() == target)
+        return win;
+
+    const wxWindowList& children = win->GetChildren();
+    for (size_t i = 0; i < children.GetCount(); i++)
+    {
+        wxWindow* found = wxInspectorFindWxWindowByGtkWidget(children[i], target);
+        if (found) return found;
+    }
+    return nullptr;
+}
+
+void wxInspectorGdkEventHandler(GdkEvent* gdkEvent, gpointer data)
+{
+    wxInspector::InspectionTree* tree =
+        static_cast<wxInspector::InspectionTree*>(data);
+
+    if (gdkEvent->type == GDK_BUTTON_PRESS && tree->IsFindWidgetCapture())
+    {
+        GdkWindow* gdkWin = gdkEvent->button.window;
+        wxWindow* foundWin = nullptr;
+
+        if (gdkWin)
+        {
+            // Get the GtkWidget associated with the clicked GdkWindow
+            gpointer userData = nullptr;
+            gdk_window_get_user_data(gdkWin, &userData);
+            GtkWidget* gtkWidget = GTK_WIDGET(userData);
+
+            // Walk up the GtkWidget parent chain. For composite controls
+            // (wxComboBox, etc.), the click lands on an internal child
+            // (e.g. the toggle button), so we walk up to find the
+            // ancestor GtkWidget whose wxWindow is in the inspection tree.
+            while (gtkWidget && !foundWin)
+            {
+                // Search all top-level windows and their children for a
+                // wxWindow wrapping this GtkWidget
+                for (wxWindowList::iterator it = wxTopLevelWindows.begin();
+                     it != wxTopLevelWindows.end(); ++it)
+                {
+                    foundWin = wxInspectorFindWxWindowByGtkWidget(*it, gtkWidget);
+                    if (foundWin) break;
+                }
+                gtkWidget = gtk_widget_get_parent(gtkWidget);
+            }
+        }
+
+        if (foundWin)
+            tree->SelectObject(foundWin);
+        else
+            wxBell();
+        tree->EndFindWidget();
+        return; // Swallow event so GTK native widgets don't process it
+    }
+
+    // Forward unhandled events to the default GTK event handler
+    wxInspectorGtkMainDoEvent(gdkEvent, nullptr);
+}
+
+} // anonymous namespace
+#endif // __WXGTK3__
+
 namespace wxInspector {
 
 wxDEFINE_EVENT(wxEVT_INSPECT_TREE_SEL_CHANGED, wxCommandEvent);
@@ -83,7 +162,13 @@ InspectionTree::InspectionTree(wxWindow* parent)
 InspectionTree::~InspectionTree()
 {
     if (m_findWidgetCapture)
+    {
+#ifdef __WXGTK3__
+        gdk_event_handler_set(wxInspectorGtkMainDoEvent, nullptr, nullptr);
+#else
         wxEvtHandler::RemoveFilter(&m_findWidgetFilter);
+#endif
+    }
 }
 
 void InspectionTree::RebuildTree()
@@ -314,7 +399,14 @@ void InspectionTree::FindWidget()
     if (m_findWidgetCapture) return;
 
     m_findWidgetCapture = true;
+#ifdef __WXGTK3__
+    // Intercept GDK events before GTK native widgets consume them.
+    // Otherwise composite widgets like wxComboBox handle button presses
+    // internally and never generate wxEVT_LEFT_DOWN for the event filter.
+    gdk_event_handler_set(wxInspectorGdkEventHandler, this, nullptr);
+#else
     wxEvtHandler::AddFilter(&m_findWidgetFilter);
+#endif
     SetCursor(wxCURSOR_CROSS);
 }
 
@@ -322,7 +414,12 @@ void InspectionTree::EndFindWidget()
 {
     if (!m_findWidgetCapture) return;
     m_findWidgetCapture = false;
+#ifdef __WXGTK3__
+    // Restore the default GDK event handler
+    gdk_event_handler_set(wxInspectorGtkMainDoEvent, nullptr, nullptr);
+#else
     wxEvtHandler::RemoveFilter(&m_findWidgetFilter);
+#endif
     SetCursor(wxNullCursor);
 }
 
@@ -332,7 +429,23 @@ int InspectionTree::FindWidgetEventFilter::FilterEvent(wxEvent& event)
     {
         wxWindow* win = dynamic_cast<wxWindow*>(event.GetEventObject());
         if (win)
-            m_tree->SelectObject(win);
+        {
+            // For composite controls (wxComboBox, wxSpinCtrl, etc.), the
+            // click may land on an internal child window that is not in the
+            // inspection tree. Walk up the parent chain until we find a
+            // window that is registered in the tree, so the composite
+            // control itself is selected rather than its internal child.
+            wxWindow* target = win;
+            while (target && !m_tree->FindItemForObject(
+                        m_tree->m_tree->GetRootItem(), target).IsOk())
+            {
+                target = target->GetParent();
+            }
+            if (target)
+                m_tree->SelectObject(target);
+            else
+                wxBell();
+        }
         else
             wxBell();
         m_tree->EndFindWidget();

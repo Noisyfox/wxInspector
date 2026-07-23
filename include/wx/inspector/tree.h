@@ -30,6 +30,8 @@ public:
     bool IsSizerModeEnabled() const { return m_showSizers; }
     bool IsFindWidgetCapture() const { return m_findWidgetCapture; }
 
+    void EndFindWidget();
+
 private:
     class FindWidgetEventFilter : public wxEventFilter {
     public:
@@ -60,7 +62,6 @@ private:
     void ExpandAllChildren(wxTreeItemId item);
     void CollapseAllChildren(wxTreeItemId item);
     wxTreeItemId FindItemForObject(wxTreeItemId parent, wxObject* target);
-    void EndFindWidget();
 
     wxTreeCtrl* m_tree;
     wxToolBar* m_toolbar;
