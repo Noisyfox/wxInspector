@@ -47,12 +47,14 @@ set(WXINSPECTOR_HEADERS
 
 # Build the library
 add_library(wxInspector ${WXINSPECTOR_SOURCES} ${WXINSPECTOR_HEADERS})
-target_include_directories(wxInspector PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<BUILD_INTERFACE:${wxWidgets_INCLUDE_DIRS}>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+target_include_directories(wxInspector
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    PRIVATE
+        $<BUILD_INTERFACE:${wxWidgets_INCLUDE_DIRS}>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
-target_link_libraries(wxInspector PUBLIC ${wxWidgets_LIBRARIES})
+target_link_libraries(wxInspector PRIVATE ${wxWidgets_LIBRARIES})
 
 # Samples
 add_subdirectory(samples/minimal)
