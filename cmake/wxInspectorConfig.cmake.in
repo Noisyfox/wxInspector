@@ -4,7 +4,7 @@ include(CMakeFindDependencyMacro)
 
 # wxInspector depends on wxWidgets. Re-find it so the consumer's
 # wxWidgets targets are available transitively.
-find_dependency(wxWidgets CONFIG REQUIRED COMPONENTS core base aui propgrid)
+# find_dependency(wxWidgets CONFIG REQUIRED COMPONENTS core base aui propgrid)
 
 include("${CMAKE_CURRENT_LIST_DIR}/wxInspectorTargets.cmake")
 
