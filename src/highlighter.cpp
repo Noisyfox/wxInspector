@@ -14,7 +14,8 @@ wxBEGIN_EVENT_TABLE(InspectionHighlighter, wxEvtHandler)
 wxEND_EVENT_TABLE()
 
 InspectionHighlighter::InspectionHighlighter()
-    : m_highlightedWindow(nullptr), m_flickerCount(0)
+    : m_overlay(new wxOverlay()),
+      m_highlightedWindow(nullptr), m_flickerCount(0)
 {
     m_timer.SetOwner(this);
 }
@@ -69,7 +70,6 @@ void InspectionHighlighter::Highlight(InspectableObject& obj)
 void InspectionHighlighter::ClearHighlight()
 {
     m_timer.Stop();
-    m_overlay.Reset();
     // On Wayland, wxOverlayImpl caches the GTK popup window and its
     // gtk_window_set_transient_for() parent after the first Init() call.
     // When the next highlight targets a widget in a different top-level
@@ -77,8 +77,7 @@ void InspectionHighlighter::ClearHighlight()
     // TLW, causing the overlay to appear on the wrong window. Destroy and
     // recreate the wxOverlay to force a fresh native popup with the
     // correct transient-for parent.
-    m_overlay.~wxOverlay();
-    new (&m_overlay) wxOverlay();
+    m_overlay.reset(new wxOverlay());
     m_highlightedWindow = nullptr;
     m_flickerCount = 0;
 }
@@ -97,7 +96,7 @@ void InspectionHighlighter::DrawWindowHighlight(wxWindow* win)
         // by the window system), wxOverlayDC draws through a transparent
         // overlay window that stays on top until m_overlay.Reset().
         wxWindow* tlwParent = wxGetTopLevelParent(win);
-        wxOverlayDC dc(m_overlay, tlwParent);
+        wxOverlayDC dc(*m_overlay, tlwParent);
         dc.Clear();
         dc.SetPen(wxPen(*wxGREEN, 3));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
@@ -115,7 +114,7 @@ void InspectionHighlighter::DrawSizerHighlight(wxSizer* sizer, wxWindow* relativ
     // Use wxOverlayDC on the containing window — sizer positions are
     // already relative to the containing window's client area, so no
     // coordinate conversion is needed.
-    wxOverlayDC dc(m_overlay, relativeTo);
+    wxOverlayDC dc(*m_overlay, relativeTo);
 	dc.Clear();
 
     // Green outline for sizer boundary
@@ -150,7 +149,7 @@ void InspectionHighlighter::DrawSizerItemHighlight(wxSizerItem* item, wxWindow* 
         if (!relativeTo) return;
 
         wxRect rect = item->GetRect();
-        wxOverlayDC dc(m_overlay, relativeTo);
+        wxOverlayDC dc(*m_overlay, relativeTo);
         dc.Clear();
         dc.SetPen(wxPen(*wxGREEN, 2));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
@@ -163,7 +162,7 @@ void InspectionHighlighter::DrawSizerItemHighlight(wxSizerItem* item, wxWindow* 
         if (!relativeTo) return;
 
         wxRect rect = item->GetRect();
-        wxOverlayDC dc(m_overlay, relativeTo);
+        wxOverlayDC dc(*m_overlay, relativeTo);
         dc.Clear();
         dc.SetPen(wxPen(*wxGREEN, 2));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);

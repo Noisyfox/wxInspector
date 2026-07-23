@@ -65,7 +65,7 @@ target_include_directories(wxInspector
         ${GTK3_INCLUDE_DIRS}
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
-target_link_libraries(wxInspector PRIVATE ${wxWidgets_LIBRARIES})
+target_link_libraries(wxInspector PRIVATE ${wxWidgets_LIBRARIES} ${GTK3_LIBRARIES})
 
 # Samples
 add_subdirectory(samples/minimal)

@@ -76,7 +76,8 @@ void wxInspectorGdkEventHandler(GdkEvent* gdkEvent, gpointer data)
             // Get the GtkWidget associated with the clicked GdkWindow
             gpointer userData = nullptr;
             gdk_window_get_user_data(gdkWin, &userData);
-            eventWidget = GTK_WIDGET(userData);
+            if (userData && GTK_IS_WIDGET(userData))
+                eventWidget = GTK_WIDGET(userData);
 
             // Walk up the GtkWidget parent chain. For composite controls
             // (wxComboBox, etc.), the click lands on an internal child
@@ -467,6 +468,11 @@ void InspectionTree::FindWidget()
     // Intercept GDK events before GTK native widgets consume them.
     // Otherwise composite widgets like wxComboBox handle button presses
     // internally and never generate wxEVT_LEFT_DOWN for the event filter.
+    //
+    // Note: gdk_event_handler_set() returns void, so we cannot save and
+    // restore the previous handler.  We rely on the fact that GTK always
+    // installs gtk_main_do_event during gtk_init() and no other code in
+    // a wxWidgets application replaces it.
     gdk_event_handler_set(wxInspectorGdkEventHandler, this, nullptr);
 #else
     wxEvtHandler::AddFilter(&m_findWidgetFilter);
