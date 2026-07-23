@@ -12,6 +12,10 @@
 #include <wx/accel.h>
 #include <wx/msgdlg.h>
 
+#ifdef __WXGTK3__
+#include <gtk/gtk.h>
+#endif
+
 namespace wxInspector {
 
 enum {
@@ -72,6 +76,19 @@ InspectionFrame::InspectionFrame(wxWindow* parent, wxPoint pos, wxSize size)
     };
     wxAcceleratorTable accel(sizeof(entries) / sizeof(entries[0]), entries);
     SetAcceleratorTable(accel);
+
+#ifdef __WXGTK3__
+    // On GTK, gtk_window_set_modal() grabs the entire default window group,
+    // blocking input to ALL windows in the application — including the
+    // inspector.  Move the inspector into its own window group so that modal
+    // dialogs in the application cannot block it.
+    {
+        GtkWidget* gtkWin = GTK_WIDGET(GetHandle());
+        GtkWindowGroup* inspectorGroup = gtk_window_group_new();
+        gtk_window_group_add_window(inspectorGroup, GTK_WINDOW(gtkWin));
+        g_object_unref(inspectorGroup);
+    }
+#endif
 }
 
 InspectionFrame::~InspectionFrame()
