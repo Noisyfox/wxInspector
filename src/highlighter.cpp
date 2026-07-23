@@ -70,6 +70,15 @@ void InspectionHighlighter::ClearHighlight()
 {
     m_timer.Stop();
     m_overlay.Reset();
+    // On Wayland, wxOverlayImpl caches the GTK popup window and its
+    // gtk_window_set_transient_for() parent after the first Init() call.
+    // When the next highlight targets a widget in a different top-level
+    // window, the cached popup's transient-for still points at the old
+    // TLW, causing the overlay to appear on the wrong window. Destroy and
+    // recreate the wxOverlay to force a fresh native popup with the
+    // correct transient-for parent.
+    m_overlay.~wxOverlay();
+    new (&m_overlay) wxOverlay();
     m_highlightedWindow = nullptr;
     m_flickerCount = 0;
 }
@@ -87,12 +96,14 @@ void InspectionHighlighter::DrawWindowHighlight(wxWindow* win)
         // Unlike bare wxScreenDC (whose drawing is immediately overwritten
         // by the window system), wxOverlayDC draws through a transparent
         // overlay window that stays on top until m_overlay.Reset().
-        wxOverlayDC dc(m_overlay, win);
+        wxWindow* tlwParent = wxGetTopLevelParent(win);
+        wxOverlayDC dc(m_overlay, tlwParent);
         dc.Clear();
         dc.SetPen(wxPen(*wxGREEN, 3));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        wxPoint origin = tlwParent->ScreenToClient(win->GetScreenPosition());
         wxSize sz = win->GetSize();
-        dc.DrawRectangle(0, 0, sz.x - 1, sz.y - 1);
+        dc.DrawRectangle(origin.x, origin.y, sz.x - 1, sz.y - 1);
 
         // wxOverlayDC destructor commits the overlay; start clear timer
         m_timer.Start(HIGHLIGHT_DURATION_MS, true);
