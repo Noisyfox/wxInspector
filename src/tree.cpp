@@ -37,7 +37,8 @@ wxBEGIN_EVENT_TABLE(InspectionTree, wxPanel)
 wxEND_EVENT_TABLE()
 
 InspectionTree::InspectionTree(wxWindow* parent)
-    : wxPanel(parent, wxID_ANY), m_showSizers(false), m_findWidgetCapture(false)
+    : wxPanel(parent, wxID_ANY), m_showSizers(false), m_findWidgetCapture(false),
+      m_findWidgetFilter(this)
 {
     wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
 
@@ -76,21 +77,13 @@ InspectionTree::InspectionTree(wxWindow* parent)
     Bind(wxEVT_MENU, &InspectionTree::OnLayoutParent, this, ID_TREE_LAYOUT_PARENT);
     m_tree->Bind(wxEVT_KEY_DOWN, &InspectionTree::OnKeyDown, this);
 
-    Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& evt) {
-        if (!m_findWidgetCapture) {
-            evt.Skip();
-            return;
-        }
-        ReleaseMouse();
-        SetCursor(wxNullCursor);
-        m_findWidgetCapture = false;
-        wxPoint pt = ::wxGetMousePosition();
-        wxWindow* win = wxFindWindowAtPointer(pt);
-        if (win) SelectObject(win);
-        else wxBell();
-    }, wxID_ANY, wxID_ANY);
-
     RebuildTree();
+}
+
+InspectionTree::~InspectionTree()
+{
+    if (m_findWidgetCapture)
+        wxEvtHandler::RemoveFilter(&m_findWidgetFilter);
 }
 
 void InspectionTree::RebuildTree()
@@ -321,8 +314,31 @@ void InspectionTree::FindWidget()
     if (m_findWidgetCapture) return;
 
     m_findWidgetCapture = true;
-    CaptureMouse();
+    wxEvtHandler::AddFilter(&m_findWidgetFilter);
     SetCursor(wxCURSOR_CROSS);
+}
+
+void InspectionTree::EndFindWidget()
+{
+    if (!m_findWidgetCapture) return;
+    m_findWidgetCapture = false;
+    wxEvtHandler::RemoveFilter(&m_findWidgetFilter);
+    SetCursor(wxNullCursor);
+}
+
+int InspectionTree::FindWidgetEventFilter::FilterEvent(wxEvent& event)
+{
+    if (event.GetEventType() == wxEVT_LEFT_DOWN && m_tree->m_findWidgetCapture)
+    {
+        wxWindow* win = dynamic_cast<wxWindow*>(event.GetEventObject());
+        if (win)
+            m_tree->SelectObject(win);
+        else
+            wxBell();
+        m_tree->EndFindWidget();
+        return wxEventFilter::Event_Processed;
+    }
+    return wxEventFilter::Event_Skip;
 }
 
 // --- Event handlers ---
@@ -368,6 +384,7 @@ void InspectionTree::OnKeyDown(wxKeyEvent& event)
         ProcessWindowEvent(evt);
         return;
     }
+    case WXK_ESCAPE: EndFindWidget(); return;
     default: break;
     }
     event.Skip();
