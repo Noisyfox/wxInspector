@@ -24,6 +24,16 @@ endif(WIN32)
 find_package(wxWidgets 3.2.0 REQUIRED COMPONENTS core base aui propgrid)
 include(${wxWidgets_USE_FILE})
 
+# On GTK3, we need direct GDK access for find-widget event interception.
+# Only apply when wxWidgets is built with GTK, matching the #ifdef __WXGTK3__
+# guard in the C++ code.
+if(wxWidgets_LIBRARIES MATCHES "gtk3")
+    find_package(PkgConfig QUIET)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(GTK3 gtk+-3.0)
+    endif()
+endif()
+
 # Library sources
 set(WXINSPECTOR_SOURCES
     src/inspector.cpp
@@ -58,10 +68,11 @@ target_include_directories(wxInspector
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     PRIVATE
-        $<BUILD_INTERFACE:${wxWidgets_INCLUDE_DIRS}>
+        ${wxWidgets_INCLUDE_DIRS}
+        ${GTK3_INCLUDE_DIRS}
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
-target_link_libraries(wxInspector PRIVATE ${wxWidgets_LIBRARIES})
+target_link_libraries(wxInspector PRIVATE ${wxWidgets_LIBRARIES} ${GTK3_LIBRARIES})
 
 # Samples
 option(wxBUILD_SAMPLES "Build sample applications" OFF)

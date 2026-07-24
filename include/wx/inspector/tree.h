@@ -4,6 +4,7 @@
 #include <wx/panel.h>
 #include <wx/treectrl.h>
 #include <wx/toolbar.h>
+#include <wx/eventfilter.h>
 #include "wx/inspector/object.h"
 
 namespace wxInspector {
@@ -14,6 +15,7 @@ wxDECLARE_EVENT(wxEVT_INSPECT_TREE_HIGHLIGHT, wxCommandEvent);
 class InspectionTree : public wxPanel {
 public:
     InspectionTree(wxWindow* parent);
+    ~InspectionTree();
 
     void RebuildTree();
     void ToggleSizers();
@@ -26,8 +28,19 @@ public:
     wxTreeCtrl* GetTreeCtrl() { return m_tree; }
 
     bool IsSizerModeEnabled() const { return m_showSizers; }
+    bool IsFindWidgetCapture() const { return m_findWidgetCapture; }
+
+    void EndFindWidget();
 
 private:
+    class FindWidgetEventFilter : public wxEventFilter {
+    public:
+        explicit FindWidgetEventFilter(InspectionTree* tree) : m_tree(tree) {}
+        int FilterEvent(wxEvent& event) override;
+    private:
+        InspectionTree* m_tree;
+    };
+
     void OnTreeSelChanged(wxTreeEvent& event);
     void OnRefresh(wxCommandEvent& event);
     void OnToggleSizers(wxCommandEvent& event);
@@ -54,6 +67,7 @@ private:
     wxToolBar* m_toolbar;
     bool m_showSizers;
     bool m_findWidgetCapture;
+    FindWidgetEventFilter m_findWidgetFilter;
     wxDECLARE_EVENT_TABLE();
 };
 
