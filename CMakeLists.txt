@@ -12,6 +12,15 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Find wxWidgets
+if(WIN32)
+    if(MSVC)
+        # wxWidgets 3.3 breaks MSVC builds when wxWidgets is built & installed locally via CMAKE.
+        # https://github.com/wxWidgets/wxWidgets/commit/436c16135ec7ddf580f44624bf74c592aae43b66#diff-8dc07ac91954bdfd60ee5c10d5949a71a833293f168c7b660b87562e653e5773R41-R47
+        # FindwxWidgets think you have the complete debug build available if `mswud` folder is present even if it's empty.
+        # So we stop this by setting wxWidgets_USE_REL_AND_DBG to OFF
+        set(wxWidgets_USE_REL_AND_DBG OFF)
+    endif(MSVC)
+endif(WIN32)
 find_package(wxWidgets 3.2.0 REQUIRED COMPONENTS core base aui propgrid)
 include(${wxWidgets_USE_FILE})
 
