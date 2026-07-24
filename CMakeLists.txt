@@ -68,7 +68,10 @@ target_include_directories(wxInspector
 target_link_libraries(wxInspector PRIVATE ${wxWidgets_LIBRARIES} ${GTK3_LIBRARIES})
 
 # Samples
-add_subdirectory(samples/minimal)
+option(wxBUILD_SAMPLES "Build sample applications" OFF)
+if(wxBUILD_SAMPLES)
+    add_subdirectory(samples/minimal)
+endif()
 
 # ---- Install rules ----
 include(GNUInstallDirs)

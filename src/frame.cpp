@@ -12,6 +12,11 @@
 #include <wx/accel.h>
 #include <wx/msgdlg.h>
 
+#ifdef __WXOSX__
+#include <objc/runtime.h>
+#include <objc/message.h>
+#endif
+
 #ifdef __WXGTK3__
 #include <gtk/gtk.h>
 #endif
@@ -44,7 +49,11 @@ wxEND_EVENT_TABLE()
 
 InspectionFrame::InspectionFrame(wxWindow* parent, wxPoint pos, wxSize size)
     : wxFrame(parent, wxID_ANY, "wxInspector", pos, size,
-              wxDEFAULT_FRAME_STYLE | wxFRAME_NO_TASKBAR),
+              wxDEFAULT_FRAME_STYLE | wxFRAME_NO_TASKBAR
+#ifdef __WXOSX__
+              | wxFRAME_TOOL_WINDOW
+#endif
+              ),
       m_auiMgr(this)
 {
     SetIcon(wxArtProvider::GetIcon(wxART_FIND));
@@ -76,6 +85,32 @@ InspectionFrame::InspectionFrame(wxWindow* parent, wxPoint pos, wxSize size)
     };
     wxAcceleratorTable accel(sizeof(entries) / sizeof(entries[0]), entries);
     SetAcceleratorTable(accel);
+
+#ifdef __WXOSX__
+    // On macOS, [NSApp runModalForWindow:] blocks input to all windows
+    // except the modal dialog — including the inspector.  wxFRAME_TOOL_WINDOW
+    // creates an NSPanel (via wxNSPanel) which has worksWhenModal as a
+    // readwrite property, so the setter is directly available.
+    {
+        id nsView = (id)GetHandle();
+        SEL windowSel = sel_registerName("window");
+        id nsWindow = ((id (*)(id, SEL))objc_msgSend)(nsView, windowSel);
+
+        if (nsWindow)
+        {
+            SEL setWorksSel = sel_registerName("setWorksWhenModal:");
+            SEL respondsSel = sel_registerName("respondsToSelector:");
+            BOOL hasSetter = ((BOOL (*)(id, SEL, SEL))objc_msgSend)(
+                nsWindow, respondsSel, setWorksSel);
+
+            if (hasSetter)
+            {
+                ((void (*)(id, SEL, BOOL))objc_msgSend)(
+                    nsWindow, setWorksSel, YES);
+            }
+        }
+    }
+#endif
 
 #ifdef __WXGTK3__
     // On GTK, gtk_window_set_modal() grabs the entire default window group,
