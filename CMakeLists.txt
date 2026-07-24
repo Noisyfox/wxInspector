@@ -12,10 +12,8 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Find wxWidgets
-find_package(wxWidgets CONFIG REQUIRED COMPONENTS core base aui propgrid)
-if(wxWidgets_USE_FILE)
-    include(${wxWidgets_USE_FILE})
-endif()
+find_package(wxWidgets 3.2.0 REQUIRED COMPONENTS core base aui propgrid)
+include(${wxWidgets_USE_FILE})
 
 # Library sources
 set(WXINSPECTOR_SOURCES
