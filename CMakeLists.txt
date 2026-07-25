@@ -12,6 +12,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Find wxWidgets
+set(WXWIDGETS_CONFIG_MODE "")
 if(WIN32)
     if(MSVC)
         # wxWidgets 3.3 breaks MSVC builds when wxWidgets is built & installed locally via CMAKE.
@@ -20,9 +21,17 @@ if(WIN32)
         # So we stop this by setting wxWidgets_USE_REL_AND_DBG to OFF
         set(wxWidgets_USE_REL_AND_DBG OFF)
     endif(MSVC)
+
+    if(CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64" OR CMAKE_VS_PLATFORM_NAME STREQUAL "ARM64")
+        # Module mode doesn't work on Windows on ARM due to a bug in FindwxWidgets.cmake
+        # See https://discourse.cmake.org/t/findwxwidgets-cmake-on-windows-on-arm-support-is-broken
+        set(WXWIDGETS_CONFIG_MODE "CONFIG")
+    endif()
 endif(WIN32)
-find_package(wxWidgets 3.2.0 REQUIRED COMPONENTS core base aui propgrid)
-include(${wxWidgets_USE_FILE})
+find_package(wxWidgets ${WXWIDGETS_CONFIG_MODE} REQUIRED COMPONENTS core base aui propgrid)
+if(wxWidgets_USE_FILE)
+    include(${wxWidgets_USE_FILE})
+endif()
 
 # On GTK3, we need direct GDK access for find-widget event interception.
 # Only apply when wxWidgets is built with GTK, matching the #ifdef __WXGTK3__
