@@ -58,6 +58,7 @@ set(WXINSPECTOR_SOURCES
 )
 
 set(WXINSPECTOR_HEADERS
+    include/wx/inspector/version.h
     include/wx/inspector/inspector.h
     include/wx/inspector/frame.h
     include/wx/inspector/tree.h
